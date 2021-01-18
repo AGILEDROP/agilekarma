@@ -40,7 +40,7 @@ const prepareDatabase = async() => {
 function addUsername() {
   return new Promise( function( resolve, reject ) {
     const db = mysql.createConnection( mysqlConfig );
-    const str = "UPDATE user SET user_username = LOWER( REPLACE( user_name, ' ', '' ) ) WHERE user_username = '' ";
+    const str = "UPDATE user SET user_username = LOWER( REPLACE( user_name, ' ', '' ) ) WHERE (user_username = '' OR user_username = NULL)";
     const query = mysql.format( str );
 
     db.query( query, function( err, result ) {
