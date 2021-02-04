@@ -28,7 +28,6 @@ import {
   DropdownItem,
   DropdownToggle
 } from 'reactstrap';
-// import { result } from 'lodash';
 
 const defineds = {
   startOfWeek: startOfWeek(new Date()),
@@ -114,7 +113,7 @@ const DateRange = props => {
     });
   }
 
-  const [selectedOption, setSelectedOption] = useState((channelsSelected2.length > 0) ? channelsSelected2 : null); // [{value: 'all', label: 'All Channels'}]
+  const [selectedOption, setSelectedOption] = useState((channelsSelected2.length > 0) ? channelsSelected2 : null);
 
   useEffect(() => {
 
@@ -165,15 +164,6 @@ const DateRange = props => {
     <div className="container">
      <div className="row mt-5">
         <div className="col">
-          <h5 className="mb-0">
-            {/* { (props.channel === 'all') ? 'All Channels'
-            : selectedOption ? (selectedOption.map(el => {
-              if (props.channel.includes(el.value)) {
-                return el.label + ' ';
-              }
-            })) : null
-            } */}
-          </h5>
           <Creatable
               components={{ Menu }}
               isMulti
@@ -222,7 +212,7 @@ const DateRange = props => {
                 />
             </DropdownMenu>
           </ButtonDropdown>
-          <div class="selectedDate">{selectedDate}</div>
+          <div className="selectedDate">{selectedDate}</div>
         </div>
       </div>
     </div>

@@ -295,9 +295,6 @@ function getAllScores( startDate, endDate, channelId ) {
         console.log( db.sql );
         reject( err );
       } else {
-        // console.log("RESULT: " + JSON.stringify(result));
-        // console.log(channelId, start, end);
-
         resolve( result );
       }
     });
@@ -651,8 +648,6 @@ const getAll = async( username, fromTo, channel, itemsPerPage, page, searchStrin
     'ORDER BY score.timestamp DESC ' +
     paginationParams;
 
-    console.log("WHERE USER: " + whereUser);
-
     const query = mysql.format( str );
     const queryCount = mysql.format( countScores );
 
@@ -839,7 +834,6 @@ function getDayilyVotesByUser( fromUserId ) {
 
   return new Promise( function( resolve, reject ) {
     const day = new Date().getDate();
-    console.log( day );
     const db = mysql.createConnection( mysqlConfig );
     const str = 'SELECT COUNT(score_id) as daily_votes from score where DAY(`timestamp`) = ? AND from_user_id = ?;';
     const inserts = [ day, fromUserId ];
