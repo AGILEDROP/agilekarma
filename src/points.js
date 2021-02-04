@@ -49,9 +49,9 @@ const timeLimit = process.env.UNDO_TIME_LIMIT;
  * @return {array} An array of entries, each an object containing 'item' (string) and 'score'
  *                (integer) properties.
  */
-const retrieveTopScores = async( channelId, startDate, endDate ) => {
+const retrieveTopScores = async( startDate, endDate, channelId ) => {
   let scores = '';
-  await getAllScores( channelId, startDate, endDate ).then( function( result ) {
+  await getAllScores( startDate, endDate, channelId ).then( function( result ) {
     scores = result;
   });
   return scores;
@@ -253,13 +253,19 @@ function getUserScore( item, channelId ) {
  * @returns {Promise}
  *   The promise.
  */
-function getAllScores( channelId, startDate, endDate ) {
+function getAllScores( startDate, endDate, channelId ) {
   return new Promise( function( resolve, reject ) {
     const db = mysql.createConnection( mysqlConfig );
     let str = '';
     let start;
     let end;
     let inserts;
+    
+    let channels = channelId.split(',');
+
+    let where_str = 'WHERE (';
+    where_str += channels.map(x => { return "`channel_id` = '" + x + "'" }).join(" OR ");
+    where_str += ')';
 
     if ( 'undefined' !== typeof startDate || 'undefined' !== typeof endDate) {
       start = moment.unix( startDate ).format( 'YYYY-MM-DD HH:mm:ss' );
@@ -273,9 +279,12 @@ function getAllScores( channelId, startDate, endDate ) {
     if ( 'all' === channelId ) {
       inserts = [ start, end ];
       str = 'SELECT to_user_id as item, COUNT(score_id) as score FROM `score` WHERE (`timestamp` > ? AND `timestamp` < ?) GROUP BY to_user_id ORDER BY score DESC';
-    } else if ( 'undefined' !== typeof channelId ) {
+    } else if ( 'all' !== channelId && channels.length === 1) {
       inserts = [ channelId, start, end ];
       str = 'SELECT to_user_id as item, COUNT(score_id) as score FROM `score` WHERE `channel_id` = ? AND (`timestamp` > ? AND `timestamp` < ?) GROUP BY to_user_id ORDER BY score DESC';
+    } else if ( 'undefined' !== typeof channelId ) {
+      inserts = [ start, end ];
+      str = 'SELECT to_user_id as item, COUNT(score_id) as score FROM `score` ' + where_str + ' AND (`timestamp` > ? AND `timestamp` < ?) GROUP BY to_user_id ORDER BY score DESC';
     } else {
       str = 'SELECT to_user_id as item, COUNT(score_id) as score FROM `score` GROUP BY to_user_id ORDER BY score DESC';
     }
@@ -286,8 +295,8 @@ function getAllScores( channelId, startDate, endDate ) {
         console.log( db.sql );
         reject( err );
       } else {
-        console.log(JSON.stringify(result));
-        console.log(channelId, start, end);
+        // console.log("RESULT: " + JSON.stringify(result));
+        // console.log(channelId, start, end);
 
         resolve( result );
       }
@@ -306,7 +315,7 @@ function getAllScores( channelId, startDate, endDate ) {
  * @returns {Promise}
  *   The promise.
  */
-function getAllScoresFromUser( channelId, startDate, endDate ) {
+function getAllScoresFromUser( startDate, endDate, channelId ) {
   return new Promise( function( resolve, reject ) {
     const db = mysql.createConnection( mysqlConfig );
     let str = '';
@@ -356,6 +365,12 @@ const getKarmaFeed = (itemsPerPage, page, searchString, channelId, startDate, en
     let inserts;
     let searchForm = '';
 
+    let channels = channelId.split(',');
+
+    let where_str = 'WHERE (';
+    where_str += channels.map(x => { return "channel.channel_id = '" + x + "'" }).join(" OR ");
+    where_str += ')';
+
     if ( 'undefined' !== typeof startDate || 'undefined' !== typeof endDate) {
       start = moment.unix( startDate ).format( 'YYYY-MM-DD HH:mm:ss' );
       end = moment.unix( endDate ).format( 'YYYY-MM-DD HH:mm:ss' );
@@ -364,14 +379,18 @@ const getKarmaFeed = (itemsPerPage, page, searchString, channelId, startDate, en
       end = moment( Date.now() ).format( 'YYYY-MM-DD HH:mm:ss' );
     }
 
-    if ( 'all' === channelId && !searchString ) {
+    if ( 'all' === channelId && !searchString && channels.length === 1 ) {
       searchForm = 'WHERE (score.timestamp > \'' + start + '\' AND score.timestamp < \'' + end + '\') ';
-    } else if ( 'all' === channelId && searchString ) {
+    } else if ( 'all' === channelId && searchString && channels.length === 1 ) {
       searchForm = 'WHERE (score.timestamp > \'' + start + '\' AND score.timestamp < \'' + end + '\') AND uFrom.user_name LIKE \'%' + searchString + '%\' ';
-    } else if ( 'all' !== channelId && !searchString ) {
+    } else if ( 'all' !== channelId && !searchString && channels.length === 1 ) {
       searchForm = 'WHERE channel.channel_id = \'' + channelId + '\' AND (score.timestamp > \'' + start + '\' AND score.timestamp < \'' + end + '\') ';
-    } else if ( 'all' !== channelId && searchString ) {
+    } else if ( 'all' !== channelId && searchString && channels.length === 1 ) {
       searchForm = 'WHERE channel.channel_id = \'' + channelId + '\' AND (score.timestamp > \'' + start + '\' AND score.timestamp < \'' + end + '\') AND uFrom.user_name LIKE \'%' + searchString + '%\' ';
+    } else if ( 'all' !== channelId && !searchString) {
+      searchForm = where_str + ' AND (score.timestamp > \'' + start + '\' AND score.timestamp < \'' + end + '\') ';
+    } else if ( 'all' !== channelId && searchString) {
+      searchForm = where_str + ' AND (score.timestamp > \'' + start + '\' AND score.timestamp < \'' + end + '\') AND uFrom.user_name LIKE \'%' + searchString + '%\' ';
     }
 
     let countScores = 'SELECT COUNT(*) AS scores ' +

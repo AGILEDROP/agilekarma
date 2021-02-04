@@ -21,6 +21,7 @@
     "react-paginate": "^6.5.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "^3.4.4",
+    "react-select": "^3.2.0",
     "reactstrap": "^8.6.0",
     "recharts": "^1.8.5"
   },

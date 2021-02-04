@@ -24,7 +24,7 @@ const KarmaFeed = props => {
   const [fromUsers, setFromUsers] = useState();
 
   const channelsURL = apiURL + '/channels?channel=' + channel;
-  const [listChannels, setListChannels] = useState();
+  const [listChannels, setListChannels] = useState([]);
 
   const [pagination, setPagination] = useState({
     pageCount: 0,
@@ -116,16 +116,22 @@ const KarmaFeed = props => {
 
   return(
     <>
-    <DateRange 
-      listChannels={listChannels} 
-      channel={channel} 
-      query={props.location.search}
-      onChannelClick={ value => setChannel(value) }
-      onStartDateClick={ value => setStartDate(value) }
-      onEndDateClick={ value => setEndDate(value) }
-      onSearchClick={ value => props.onClick(value) }
-      onFilterClick={ value => handlePageClick({selected: value}) }
-    />
+    {(listChannels.length !== 0) ?
+      <DateRange 
+        listChannels={listChannels} 
+        channel={channel} 
+        startDate={startDate}
+        endDate={endDate}
+        query={props.location.search}
+        onChannelClick={ value => setChannel(value) }
+        onStartDateClick={ value => setStartDate(value) }
+        onEndDateClick={ value => setEndDate(value) }
+        onSearchClick={ value => props.onClick(value) }
+        onFilterClick={ value => handlePageClick({selected: value}) }
+      />
+      : null
+    }
+    
     {(fromUsers === undefined) ?
 
     <div className="row mt-5">

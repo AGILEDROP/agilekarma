@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Link, useHistory } from 'react-router-dom';
 import axios from 'axios';
 import queryString from 'query-string';
 
-import { getUnixTime, endOfDay } from 'date-fns';
+import { getUnixTime, endOfDay, startOfMonth, endOfMonth } from 'date-fns';
 
 import _ from "lodash";
 
@@ -21,8 +21,8 @@ const Chart = props => {
 
   if (channel === undefined || startDate === undefined || endDate === undefined) {
     setChannel('all');
-    setStartDate(0);
-    setEndDate(getUnixTime(endOfDay(new Date())));
+    setStartDate(getUnixTime(startOfMonth(new Date())));
+    setEndDate(getUnixTime(endOfMonth(new Date())));
   }
 
   // const apiURL = 'https://a564aa475f76.eu.ngrok.io/leaderboard' + props.location.search;
@@ -30,7 +30,7 @@ const Chart = props => {
   const [users, setUsers] = useState();
 
   const channelsURL = apiURL + '/channels?channel=' + channel;
-  const [listChannels, setListChannels] = useState();
+  const [listChannels, setListChannels] = useState([]);
 
   const [paginationSearch, setPaginationSearch] = useState(0);
 
@@ -79,16 +79,21 @@ const Chart = props => {
 
   return(
     <>
-      <DateRange 
-        listChannels={listChannels} 
-        channel={channel} 
-        query={props.location.search}
-        onChannelClick={ value => setChannel(value) }
-        onStartDateClick={ value => setStartDate(value) }
-        onEndDateClick={ value => setEndDate(value) }
-        onSearchClick={ value => props.onClick(value) }
-        onFilterClick={ value => setPaginationSearch(0) }
-      />
+      {(listChannels.length !== 0) ?
+        <DateRange 
+          listChannels={listChannels} 
+          channel={channel} 
+          startDate={startDate}
+          endDate={endDate}
+          query={props.location.search}
+          onChannelClick={ value => setChannel(value) }
+          onStartDateClick={ value => setStartDate(value) }
+          onEndDateClick={ value => setEndDate(value) }
+          onSearchClick={ value => props.onClick(value) }
+          onFilterClick={ value => setPaginationSearch(0) }
+        />
+        : null
+      }
 
       {(users === undefined) ?
 
