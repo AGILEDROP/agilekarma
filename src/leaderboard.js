@@ -256,7 +256,7 @@ const getForWeb = async( request ) => {
     const endDate = request.query.endDate;
     const channelId = request.query.channel;
 
-    const scores = await points.retrieveTopScores( channelId, startDate, endDate );
+    const scores = await points.retrieveTopScores( startDate, endDate, channelId );
     const users = await rankItems( scores, 'users', 'object' );
 
     console.log(users);
@@ -300,7 +300,7 @@ const getAllScoresFromUser = async( request ) => {
     const endDate = request.query.endDate;
     const channelId = request.query.channel;
     // console.log(request.query);
-    const fromUsers = await points.getAllScoresFromUser( channelId, startDate, endDate );
+    const fromUsers = await points.getAllScoresFromUser( startDate, endDate, channelId );
     // console.log("FROMUSERS: " + JSON.stringify(fromUsers));
 
     const users = await userScores( fromUsers );
