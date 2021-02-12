@@ -357,7 +357,7 @@ const getUserProfile = async( request ) => {
     const page = request.query.page;
     const searchString = request.query.searchString;
 
-    const scores = await points.retrieveTopScores( channel );
+    const scores = await points.retrieveTopScores( null, null, channel );
     const users = await rankItems( scores, 'users', 'object' );
     const userId = await points.getUserId( username );
 
