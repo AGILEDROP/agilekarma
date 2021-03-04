@@ -126,7 +126,8 @@ const KarmaFeed = props => {
         onChannelClick={ value => setChannel(value) }
         onStartDateClick={ value => setStartDate(value) }
         onEndDateClick={ value => setEndDate(value) }
-        onSearchClick={ value => props.onClick(value) }
+        onSearchClick={ value => value }
+        // onSearchClick={ value => props.onClick(value) }
         onFilterClick={ value => handlePageClick({selected: value}) }
       />
       : null

@@ -2,25 +2,30 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import './App.css';
 
+import PrivateRoute from './components/PrivateRoute';
+
 import NavBar from './components/NavBar';
 import Chart from './components/Chart';
 import KarmaFeed from './components/KarmaFeed';
 import UserProfile from './components/UserProfile';
+import Login from './components/Login';
 
-function App() {
+const App = props => {
 
   const [searchTerm, setSearchTerm] = useState('');
 
   return (
     <Router>
-      <NavBar search={searchTerm} onChange={value => setSearchTerm(value)} onClick={value => setSearchTerm(value)} />
+
+      <PrivateRoute path="/" component={NavBar} search={searchTerm} onChange={value => setSearchTerm(value)} onSearchClick={value => setSearchTerm(value)} />
+      
       <Switch>
-        	<Route exact path="/" render={ props => (<Chart {...props} search={searchTerm} onClick={value => setSearchTerm(value)} />) } />
-          <Route exact path="/feed" render={ props => (<KarmaFeed {...props} search={searchTerm} onClick={value => setSearchTerm(value)} />) } />
-          <Route path="/user/:user">
-            <UserProfile search={searchTerm} />
-          </Route>
+        <Route exact path="/login" component={Login} />
+        <PrivateRoute exact path="/" component={Chart} search={searchTerm} onSearchClick={value => setSearchTerm(value)} />
+        <PrivateRoute exact path="/feed" component={KarmaFeed} search={searchTerm} onSearchClick={value => setSearchTerm(value)} />
+        <PrivateRoute path="/user/:user" component={UserProfile} search={searchTerm} />
       </Switch>
+
     </Router>
   );
 }

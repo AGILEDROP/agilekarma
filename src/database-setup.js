@@ -93,6 +93,7 @@ function createUserTable() {
         '(`user_id` VARCHAR(255) NOT NULL,' +
         '`user_name` VARCHAR(255) NULL,' +
         '`user_username` VARCHAR(255) NULL,' +
+        '`user_email` VARCHAR(255) NULL,' +
         '`banned_until` DATETIME NULL,' +
         'PRIMARY KEY (`user_id`));';
     const query = mysql.format( str, inserts );

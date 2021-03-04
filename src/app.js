@@ -14,7 +14,8 @@
 
 const events = require( './events' ),
       helpers = require( './helpers' ),
-      leaderboard = require( './leaderboard' );
+      leaderboard = require( './leaderboard' ),
+      passport = require('passport');
 
 // eslint-disable-next-line no-process-env
 const SLACK_VERIFICATION_TOKEN = process.env.SLACK_VERIFICATION_TOKEN;
@@ -88,7 +89,13 @@ const handleGet = async( request, response ) => {
     // provided - the full link can be retrieved by requesting the leaderboard within Slack.
     // TODO: This should probably be split out into a separate function of sorts, like handlePost.
     case '/leaderboard':
-      response.json( await leaderboard.getForWeb( request ) );
+      // response.send("TEST");
+      // response.json( await leaderboard.getForWeb( request ) );
+      try {
+        response.json( await leaderboard.getForWeb( request ) );
+      } catch(err) {
+        console.log(err.message);
+      }
       break;
 
     case '/channels':
@@ -117,6 +124,18 @@ const handleGet = async( request, response ) => {
 
     // A simple default GET response is sometimes useful for troubleshooting.
     default:
+
+      // console.log(JSON.stringify(request.cookies));
+      // response.writeHead(200, {
+      //   "Set-Cookie": "token=" + request.cookies + "; HttpOnly",
+      //   "Access-Control-Allow-Credentials": "true"
+      // }).send();
+      // response.send(response);
+
+      // console.log('Cookies: ', request.cookies);
+      // console.log('Signed Cookies: ', request.signedCookies);
+      // console.log("SESSION: " + JSON.stringify(request.session));
+
       response.send( 'It works! However, this app only accepts POST requests for now.' );
       break;
 
@@ -134,6 +153,8 @@ const handleGet = async( request, response ) => {
  */
 const handlePost = ( request, response ) => {
   logRequest( request );
+
+  console.log("REQUEST: " + request.body);
 
   // Respond to challenge sent by Slack during event subscription set up.
   if ( request.body.challenge ) {
