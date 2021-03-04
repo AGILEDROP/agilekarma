@@ -259,7 +259,7 @@ const getForWeb = async( request ) => {
     const scores = await points.retrieveTopScores( startDate, endDate, channelId );
     const users = await rankItems( scores, 'users', 'object' );
 
-    console.log(users);
+    // console.log(users);
     return users;
 
   } catch ( err ) {

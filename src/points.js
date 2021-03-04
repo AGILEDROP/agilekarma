@@ -260,8 +260,11 @@ function getAllScores( startDate, endDate, channelId ) {
     let start;
     let end;
     let inserts;
-    
-    let channels = channelId.split(',');
+    let channels = '';
+
+    if ( channelId !== 'undefined') {
+      channels = channelId.split(',');
+    }
 
     let where_str = 'WHERE (';
     where_str += channels.map(x => { return "`channel_id` = '" + x + "'" }).join(" OR ");
@@ -361,6 +364,7 @@ const getKarmaFeed = (itemsPerPage, page, searchString, channelId, startDate, en
     let end;
     let inserts;
     let searchForm = '';
+    // let channels = '';
 
     let channels = channelId.split(',');
 
@@ -684,12 +688,18 @@ const getAll = async( username, fromTo, channel, itemsPerPage, page, searchStrin
  * @returns {Promise}
  *   Returned promise.
  */
-function insertUser( userId, userName ) {
-  return new Promise( function( resolve, reject ) {
+const insertUser = async( userId, userName ) => {
+
+  const userObject = await slack.getUserEmail( userId );
+  const userEmail = userObject.profile.email;
+  console.log("USER EMAIL: " + userEmail);
+
+  return new Promise( function ( resolve, reject ) {
     const db = mysql.createConnection( mysqlConfig );
     const lowcaseUserName = userName.split(" ").join("").toLocaleLowerCase();
-    const str = 'INSERT INTO ?? (user_id, user_name, user_username, banned_until) VALUES (?, ?, ?, NULL);';
-    const inserts = [ 'user', userId, userName, lowcaseUserName ];
+
+    const str = 'INSERT INTO ?? (user_id, user_name, user_username, user_email, banned_until) VALUES (?, ?, ?, ?, NULL);';
+    const inserts = [ 'user', userId, userName, lowcaseUserName, userEmail ];
     const query = mysql.format( str, inserts );
     db.query( query, function( err, result ) {
       if ( err ) {
@@ -878,6 +888,34 @@ const getAllChannels = () => {
   });
 }
 
+/**
+ * Verify Email.
+ *
+ * @returns {Promise}
+ *   The promise.
+ */
+function verifyEmail( email ) {
+  return new Promise( function( resolve, reject ) {
+    const db = mysql.createConnection( mysqlConfig );
+    const str = 'SELECT user_email FROM ?? WHERE user_email = ?';
+    const inserts = [ 'user', email ];
+    const query = mysql.format( str, inserts );
+    db.query( query, function( err, result ) {
+      if ( err ) {
+        console.log( db.sql );
+        reject( err );
+      } else if (result.length === 0) {
+        resolve( false );
+      } else {
+        resolve( true );
+      }
+    });
+
+    db.end(dbErrorHandler);
+
+  });
+}
+
 module.exports = {
   retrieveTopScores,
   updateScore,
@@ -891,5 +929,6 @@ module.exports = {
   getKarmaFeed,
   getName,
   getAll,
-  getUserId
+  getUserId,
+  verifyEmail
 };

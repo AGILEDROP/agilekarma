@@ -49,9 +49,29 @@ const getUserList = async() => {
     users[ user.id ] = user;
   }
 
+
+
   return users;
 
 }; // GetUserList.
+
+
+const getUserEmail = async( userId ) => {
+  
+  const users = await getUserList();
+  const user = users[ userId ];
+
+  // console.log(user);
+
+  return user;
+
+  // if ( 'undefined' === typeof user ) {
+  //   return '(unknown)';
+  // }
+
+  // return username || ! user.profile.real_name ? user.name : user.profile.real_name;
+
+};
 
 /**
  * Given a Slack user ID, returns the user's real name or optionally, the user's username. If the
@@ -205,5 +225,6 @@ module.exports = {
   getUserName,
   sendMessage,
   getChannelName,
-  sendEphemeral
+  sendEphemeral,
+  getUserEmail
 };
