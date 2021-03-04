@@ -261,14 +261,14 @@ function getAllScores( startDate, endDate, channelId ) {
     let end;
     let inserts;
     let channels = '';
-
-    if ( channelId !== 'undefined') {
-      channels = channelId.split(',');
-    }
-
     let where_str = 'WHERE (';
-    where_str += channels.map(x => { return "`channel_id` = '" + x + "'" }).join(" OR ");
-    where_str += ')';
+
+    if ( channelId !== undefined ) {
+      channels = channelId.split(',');
+      
+      where_str += channels.map(x => { return "`channel_id` = '" + x + "'" }).join(" OR ");
+      where_str += ')';
+    }
 
     if ( 'undefined' !== typeof startDate || 'undefined' !== typeof endDate) {
       start = moment.unix( startDate ).format( 'YYYY-MM-DD HH:mm:ss' );
@@ -364,7 +364,6 @@ const getKarmaFeed = (itemsPerPage, page, searchString, channelId, startDate, en
     let end;
     let inserts;
     let searchForm = '';
-    // let channels = '';
 
     let channels = channelId.split(',');
 
