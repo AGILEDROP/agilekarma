@@ -180,7 +180,7 @@ const getForSlack = async( event, request ) => {
   try {
     const limit = 5;
 
-    const scores = await points.retrieveTopScores( event.channel ),
+    const scores = await points.retrieveTopScores( null, null, event.channel ),
           users = await rankItems( scores, 'users' );
 
     // Things = await rankItems( scores, 'things' );
