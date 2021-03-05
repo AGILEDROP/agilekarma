@@ -132,7 +132,7 @@ const bootstrap = ( options = {}) => {
     res.sendStatus(403);
   });
 
-  // server.use(bodyParser.json());
+  server.use(bodyParser.json());
 
   server.enable( 'trust proxy' );
   server.get( '/', app.handleGet );
