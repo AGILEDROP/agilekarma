@@ -16,7 +16,7 @@ const mysql = require( 'mysql' );
 const uuid = require ( 'uuid' );
 const slack = require( './slack' );
 const scoresTableName = 'score';
-const moment = require ( 'moment' );
+const moment = require( 'moment' );
 
 /* eslint-disable no-process-env */
 /* eslint-enable no-process-env */
@@ -260,7 +260,7 @@ function getAllScores( startDate, endDate, channelId ) {
     let start;
     let end;
     let inserts;
-    let channels = '';
+    let channels;
     let where_str = 'WHERE (';
 
     if ( channelId !== undefined ) {
@@ -270,14 +270,16 @@ function getAllScores( startDate, endDate, channelId ) {
       where_str += ')';
     }
 
-    if ( 'undefined' !== typeof startDate || 'undefined' !== typeof endDate) {
+    if (startDate === null || endDate === null) {
+      start = moment( 0 ).format( 'YYYY-MM-DD HH:mm:ss' );
+      end = moment( Date.now() ).format( 'YYYY-MM-DD HH:mm:ss' );
+    } else if ( startDate !== undefined || endDate !== undefined ) {
       start = moment.unix( startDate ).format( 'YYYY-MM-DD HH:mm:ss' );
       end = moment.unix( endDate ).format( 'YYYY-MM-DD HH:mm:ss' );
     } else {
       start = moment( 0 ).format( 'YYYY-MM-DD HH:mm:ss' );
       end = moment( Date.now() ).format( 'YYYY-MM-DD HH:mm:ss' );
     }
-
 
     if ( 'all' === channelId ) {
       inserts = [ start, end ];

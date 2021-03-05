@@ -154,8 +154,6 @@ const handleGet = async( request, response ) => {
 const handlePost = ( request, response ) => {
   logRequest( request );
 
-  console.log("REQUEST: " + request.body);
-
   // Respond to challenge sent by Slack during event subscription set up.
   if ( request.body.challenge ) {
     response.send( request.body.challenge );
