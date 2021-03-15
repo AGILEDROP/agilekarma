@@ -908,6 +908,7 @@ function verifyEmail( email ) {
       } else if (result.length === 0) {
         resolve( false );
       } else {
+        console.log(result);
         resolve( true );
       }
     });
