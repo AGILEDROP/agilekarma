@@ -55,21 +55,21 @@ const getUserList = async() => {
 
 }; // GetUserList.
 
-
+/**
+ *
+ * @returns User email
+ * 
+ */
 const getUserEmail = async( userId ) => {
   
   const users = await getUserList();
   const user = users[ userId ];
 
-  // console.log(user);
+  if ( 'undefined' === typeof user ) {
+    return null;
+  }
 
-  return user;
-
-  // if ( 'undefined' === typeof user ) {
-  //   return '(unknown)';
-  // }
-
-  // return username || ! user.profile.real_name ? user.name : user.profile.real_name;
+  return user.profile.email;
 
 };
 
