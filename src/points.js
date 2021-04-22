@@ -833,10 +833,10 @@ function removeLast( scoreId ) {
 function getDayilyVotesByUser( fromUserId ) {
 
   return new Promise( function( resolve, reject ) {
-    const day = new Date().getDate();
+    const date = moment( Date.now() ).format( 'YYYY-MM-DD' );
     const db = mysql.createConnection( mysqlConfig );
-    const str = 'SELECT COUNT(score_id) as daily_votes from score where DAY(`timestamp`) = ? AND from_user_id = ?;';
-    const inserts = [ day, fromUserId ];
+    const str = 'SELECT COUNT(score_id) as daily_votes from score where DATE(`timestamp`) = ? AND from_user_id = ?;';
+    const inserts = [ date, fromUserId ];
     const query = mysql.format( str, inserts );
     db.query( query, function( err, result ) {
       if ( err ) {
