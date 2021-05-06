@@ -19,10 +19,11 @@ const NavBar = props => {
         <Collapse isOpen={isOpen} navbar>
           <Nav className="mr-auto" navbar>
             <NavItem>
-              <Link to={"/" + urlParams} onClick={ e => props.onClick('') } className="nav-link">Top Chart</Link>
+              <Link to={"/" + urlParams} onClick={ value => props.onSearchClick('') } className="nav-link">Top Chart</Link>
             </NavItem>
             <NavItem>
-              <Link to={"/feed" + urlParams} onClick={ e => props.onClick('') } className="nav-link">Feed</Link>
+              <Link to={"/feed" + urlParams} onClick={ value => props.onSearchClick('') } className="nav-link">Feed</Link>
+              
             </NavItem>
           </Nav>
           
