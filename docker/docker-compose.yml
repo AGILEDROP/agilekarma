@@ -10,8 +10,8 @@ services:
       - '443:443'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./traefik/traefik.toml:/traefik.toml
-      - ./traefik/.certs:/certs
+      - ./traefik.toml:/traefik.toml
+      - ./.certs:/certs
     networks:
       - proxy
     labels:
@@ -20,24 +20,26 @@ services:
 
   nodejs:
     image: node:10
-    working_dir: /home/node/app
+    working_dir: /app
     container_name: ${PROJECT_NAME}_nodejs
     environment:
       NODE_ENV: production
-    command: "node index.js"
+    env_file:
+      - .env
+    command: 'node index.js'
     restart: unless-stopped
     depends_on:
       - mysql
     volumes:
-      - ./:/home/node/app
-    expose:
-      - "80"
+      - ../:/app
     labels:
-      - 'traefik.frontend.rule=Host:${PROJECT_HOSTNAME},www.${PROJECT_HOSTNAME}'
+      - "traefik.frontend.rule=Host:${PROJECT_NAME}.localhost,www.${PROJECT_NAME}.localhost"
       - 'traefik.docker.network=proxy'
+      - "traefik.port=${SCOREBOT_PORT}"
     networks:
       - proxy
       - default
+
   mysql:
     image: mysql:5.7
     container_name: ${PROJECT_NAME}_mysql
@@ -52,26 +54,42 @@ services:
     ports:
       - 33061:${DATABASE_PORT}
     volumes:
-      - ./mysql:/var/lib/mysql
+      - scorebotmysql:/var/lib/mysql
     networks:
       - default
-  adminer:
-    image: adminer
-    container_name: ${PROJECT_NAME}_adminer
+
+  phpmyadmin:
+    image: nazarpc/phpmyadmin
     restart: unless-stopped
-    ports:
-      - 8080:8080
+    container_name: ${PROJECT_NAME}_phpmyadmin
+    labels:
+      - "traefik.frontend.rule=Host:pma.${PROJECT_NAME}.localhost"
+      - 'traefik.docker.network=proxy'
+    environment:
+      UPLOAD_SIZE: 64M
+    networks:
+      - proxy
+      - default
+
   ngrok:
-    image: shkoliar/ngrok:latest
+    image: wernight/ngrok
     container_name: ${PROJECT_NAME}_ngrok
-    ports:
-      - 4551:4551
     links:
       - nodejs
+    labels:
+      - "traefik.frontend.rule=Host:ngrok.${PROJECT_NAME}.localhost"
+      - 'traefik.docker.network=proxy'
+      - 'traefik.port=4040'
     environment:
-      - DOMAIN=nodejs
-      - PORT=${SCOREBOT_PORT}
-      - REGION=eu
+      - NGROK_LOOK_DOMAIN=nodejs
+      - NGROK_PORT=${SCOREBOT_PORT}
+      - NGROK_REGION=eu
+    networks:
+      - proxy
+      - default
+
+volumes:
+  scorebotmysql:
 
 networks:
   default:
