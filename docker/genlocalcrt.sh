@@ -22,4 +22,4 @@ $openssl req -new \
   -reqexts SAN \
   -extensions SAN \
   -config <(cat ${opensslconf} \
-    <(printf '[SAN]\nsubjectAltName=DNS:localhost,DNS:*.localhost,DNS:docker.local'))
+    <(printf '[SAN]\nsubjectAltName=DNS:localhost,DNS:*.localhost,DNS:docker.local\nextendedKeyUsage=serverAuth'))
