@@ -24,18 +24,42 @@ services:
     container_name: ${PROJECT_NAME}_nodejs
     environment:
       NODE_ENV: production
+      SCOREBOT_LEADERBOARD_URL: "fe.${PROJECT_NAME}.localhost"
     env_file:
       - .env
-    command: 'node index.js'
+    command: 'node --inspect=0.0.0.0 index.js'
     restart: unless-stopped
     depends_on:
       - mysql
     volumes:
       - ../:/app
     labels:
-      - "traefik.frontend.rule=Host:${PROJECT_NAME}.localhost,www.${PROJECT_NAME}.localhost"
       - 'traefik.docker.network=proxy'
-      - "traefik.port=${SCOREBOT_PORT}"
+      - "traefik.one.frontend.rule=Host:${PROJECT_NAME}.localhost,www.${PROJECT_NAME}.localhost"
+      - "traefik.one.port=${SCOREBOT_PORT}"
+    ports:
+      - '9229:9229'
+    networks:
+      - proxy
+      - default
+
+  frontend:
+    image: node:10
+    working_dir: /app
+    container_name: ${PROJECT_NAME}_frontend
+    environment:
+      REACT_APP_API_URL: "https://${PROJECT_NAME}.localhost"
+    command: 'yarn start'
+    tty: true
+    restart: unless-stopped
+    depends_on:
+      - nodejs
+    volumes:
+      - ../frontend:/app
+    labels:
+      - "traefik.frontend.rule=Host:fe.${PROJECT_NAME}.localhost,www.fe.${PROJECT_NAME}.localhost"
+      - 'traefik.docker.network=proxy'
+      - "traefik.port=3000"
     networks:
       - proxy
       - default
