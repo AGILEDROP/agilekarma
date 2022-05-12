@@ -2,13 +2,12 @@
   "name": "working-plusplus",
   "version": "0.0.4",
   "description": "Like plusplus.chat, but one that actually works, because you can host it yourself 😉",
-  "main": "index.js",
+  "main": "index.ts",
   "repository": "git@github.com:tdmalone/working-plusplus.git",
   "author": "Tim Malone <tdmalone@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "lint": "eslint --color --ignore-pattern '/coverage/' --ignore-pattern '!.*.js' \"**/*.js\"",
-    "fix": "yarn lint --fix",
+    "lint": "./node_modules/.bin/eslint . --ext .ts",
     "test": "jest --forceExit --runInBand",
     "unit-tests": "SKIP_INTEGRATION_TESTS=true SKIP_E2E_TESTS=true jest --forceExit",
     "integration-tests": "SKIP_E2E_TESTS=true jest --forceExit integration-tests",
@@ -16,9 +15,9 @@
     "report-coverage": "cat ./coverage/lcov.info | coveralls"
   },
   "engines": {
-    "node": "^10.11.0",
-    "yarn": "^1.10.1"
+    "node": "^14"
   },
+  "type": "module",
   "keywords": [
     "slack",
     "bot",
@@ -27,6 +26,7 @@
   ],
   "dependencies": {
     "@slack/client": "^4.3.1",
+    "@types/express": "^4.17.13",
     "body-parser": "^1.18.3",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
@@ -39,14 +39,22 @@
     "uuid": "^8.3.1"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.13.0",
+    "@typescript-eslint/parser": "^5.0.0",
     "coveralls": "^3.0.2",
-    "eslint": "^5.3.0",
+    "eslint": "^8.15.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-airbnb-typescript": "^17.0.0",
+    "eslint-config-airbnb-typescript-prettier": "^5.0.0",
+    "eslint-config-react-app": "^7.0.1",
     "eslint-config-tdmalone": "^0.1.3",
     "eslint-plugin-dollar-sign": "^1.0.1",
     "eslint-plugin-jest": "^21.23.0",
     "jest": "^23.4.2",
     "jest-chain": "^1.0.3",
     "jest-extended": "^0.11.5",
-    "object-assign-deep": "^0.4.0"
+    "object-assign-deep": "^0.4.0",
+    "prettier": "^2.6.2",
+    "typescript": "^4.6.4"
   }
 }

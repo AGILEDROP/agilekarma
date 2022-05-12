@@ -7,17 +7,17 @@
  * @author Tim Malone <tdmalone@gmail.com>
  */
 
-'use strict';
-require( 'dotenv' ).config();
-const app = require( './src/app' ),
-      slack = require( './src/slack' );
+const app = require('./src/app');
 
-const fs = require( 'fs' ),
-      mime = require( 'mime' ),
-      express = require( 'express' ),
-      cors = require( 'cors' ),
-      bodyParser = require( 'body-parser' ),
-      slackClient = require( '@slack/client' );
+const slack = require('./src/slack');
+
+require('dotenv').config();
+
+const fs = require('fs');
+const mime = require('mime');
+const express = require('express');
+const bodyParser = require('body-parser');
+const slackClient = require('@slack/client');
 
 /* eslint-disable no-process-env, no-magic-numbers */
 const PORT = process.env.SCOREBOT_PORT || 80; // Let Heroku set the port.
@@ -37,47 +37,50 @@ const FRONTEND_URL = protocol + frontendUrl;
  *                        https://expressjs.com/en/4x/api.html#app.listen and
  *                        https://nodejs.org/api/http.html#http_class_http_server for details.
  */
-const bootstrap = ( options = {}) => {
-
+const bootstrap = (options = { express, slack }) => {
   // Allow alternative implementations of both Express and Slack to be passed in.
   const server = options.express || express();
-  slack.setSlackClient( options.slack || new slackClient.WebClient( SLACK_OAUTH_ACCESS_TOKEN ) );
+  slack.setSlackClient(
+    options.slack || new slackClient.WebClient(SLACK_OAUTH_ACCESS_TOKEN),
+  );
 
-  server.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", FRONTEND_URL); // update to match the domain you will make the request from
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  server.use((req: Express.Request, res: Express.Request, next: () => void) => {
+    res.header('Access-Control-Allow-Origin', FRONTEND_URL); // update to match the domain you will make the request from
+    res.header(
+      'Access-Control-Allow-Headers',
+      'Origin, X-Requested-With, Content-Type, Accept',
+    );
     next();
   });
 
-  server.use( bodyParser.json() );
-  server.enable( 'trust proxy' );
-  server.get( '/', app.handleGet );
-  server.post( '/', app.handlePost );
+  server.use(bodyParser.json());
+  server.enable('trust proxy');
+  server.get('/', app.handleGet);
+  server.post('/', app.handlePost);
 
   // Static assets.
-  server.get( '/assets/*', ( request, response ) => {
-    const path = 'src/' + request._parsedUrl.path,
-          type = mime.getType( path );
+  server.get('/assets/*', (request: { _parsedUrl: { path: string } }, response: { setHeader: any, send: any }) => {
+    const path = `src/${request._parsedUrl.path}`;
+    const type = mime.getType(path);
 
-    response.setHeader( 'Content-Type', type );
-    response.send( fs.readFileSync( path ) );
+    response.setHeader('Content-Type', type);
+    response.send(fs.readFileSync(path));
   });
 
   // Additional routes.
-  server.get( '/leaderboard', app.handleGet );
-  server.get( '/channels', app.handleGet );
-  server.get( '/fromusers', app.handleGet );
-  server.get( '/karmafeed', app.handleGet );
-  server.get( '/userprofile', app.handleGet );
+  server.get('/leaderboard', app.handleGet);
+  server.get('/channels', app.handleGet);
+  server.get('/fromusers', app.handleGet);
+  server.get('/karmafeed', app.handleGet);
+  server.get('/userprofile', app.handleGet);
 
-  return server.listen( PORT, () => {
-    console.log( 'Listening on port ' + PORT + '.' );
+  return server.listen(PORT, () => {
+    console.log(`Listening on port ${PORT}.`);
   });
-
 }; // Bootstrap.
 
 // If module was called directly, bootstrap now.
-if ( require.main === module ) {
+if (require.main === module) {
   bootstrap();
 }
 

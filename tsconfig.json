@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "ES2020",
+    "allowSyntheticDefaultImports": true,
+    "target": "es6",
+    "baseUrl": ".",
+    "noImplicitAny": true,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "sourceMap": true
+  },
+  "files": ["index.ts"],
+  "include": ["src/**/*.ts", "src/events.js"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
+}
