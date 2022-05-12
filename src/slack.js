@@ -63,9 +63,18 @@ const getUserList = async() => {
  */
 const getUserName = async( userId, username = false ) => {
 
-  const users = await getUserList(),
-        user = users[ userId ];
+  const users = await getUserList();
+  let user = users[ userId ];
 
+  if ( 'undefined' === typeof user ) {
+
+    //Get new list from slack and match the id
+    const userList = await slack.users.list();
+
+    user = userList.members[ userId ];
+  }
+
+  //If still not found return unknown
   if ( 'undefined' === typeof user ) {
     return '(unknown)';
   }
