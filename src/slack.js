@@ -71,7 +71,7 @@ const getUserName = async( userId, username = false ) => {
     //Get new list from slack and match the id
     const userList = await slack.users.list();
 
-    user = userList.members[ userId ];
+    user = userList.members.find( user => user.userId == userId );
   }
 
   //If still not found return unknown
