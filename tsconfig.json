@@ -10,6 +10,6 @@
     "sourceMap": true
   },
   "files": ["index.ts"],
-  "include": ["src/**/*.ts", "src/events.js"],
+  "include": ["src/**/*.ts", "src/events.ts"],
   "exclude": ["node_modules", "**/*.spec.ts"]
 }

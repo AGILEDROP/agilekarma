@@ -9,12 +9,12 @@
 
 'use strict';
 
-const helpers = require( './helpers' ),
-      operations = require( './operations' ).operations;
+const helpers = require('./helpers'),
+  operations = require('./operations').operations;
 
 const messages = {};
 
-messages[ operations.PLUS ] = [
+messages[operations.PLUS] = [
   {
     probability: 100,
     set: [
@@ -38,11 +38,11 @@ messages[ operations.PLUS ] = [
   },
   {
     probability: 1,
-    set: [ ':shifty:' ]
+    set: [':shifty:']
   }
 ];
 
-messages[ operations.MINUS ] = [
+messages[operations.MINUS] = [
   {
     probability: 100,
     set: [
@@ -58,11 +58,11 @@ messages[ operations.MINUS ] = [
   },
   {
     probability: 1,
-    set: [ ':shifty:' ]
+    set: [':shifty:']
   }
 ];
 
-messages[ operations.SELF ] = [
+messages[operations.SELF] = [
   {
     probability: 100,
     set: [
@@ -74,7 +74,7 @@ messages[ operations.SELF ] = [
   },
   {
     probability: 1,
-    set: [ ':shifty:' ]
+    set: [':shifty:']
   }
 ];
 
@@ -88,12 +88,12 @@ messages[ operations.SELF ] = [
  *
  * @returns {string} A random message from the chosen pool.
  */
-const getRandomMessage = ( operation, item, score = 0 ) => {
+const getRandomMessage = (operation: string, item: any, score = 0) => {
 
-  const messageSets = messages[ operation ];
+  const messageSets = messages[operation];
   let format = '';
 
-  switch ( operation ) {
+  switch (operation) {
     case operations.MINUS:
     case operations.PLUS:
       format = '<message> *<item>* is now on <score> point<plural>.';
@@ -104,41 +104,41 @@ const getRandomMessage = ( operation, item, score = 0 ) => {
       break;
 
     default:
-      throw Error ( 'Invalid operation: ' + operation );
+      throw Error('Invalid operation: ' + operation);
   }
 
   let totalProbability = 0;
-  for ( const set of messageSets ) {
+  for (const set of messageSets) {
     totalProbability += set.probability;
   }
 
   let chosenSet = null,
-      setRandom = Math.floor( Math.random() * totalProbability );
+    setRandom = Math.floor(Math.random() * totalProbability);
 
-  for ( const set of messageSets ) {
+  for (const set of messageSets) {
     setRandom -= set.probability;
 
-    if ( 0 > setRandom ) {
+    if (0 > setRandom) {
       chosenSet = set.set;
       break;
     }
   }
 
-  if ( null === chosenSet ) {
+  if (null === chosenSet) {
     throw Error(
       'Could not find set for ' + operation + ' (ran out of sets with ' + setRandom + ' remaining)'
     );
   }
 
-  const plural = helpers.isPlural( score ) ? 's' : '',
-        max = chosenSet.length - 1,
-        random = Math.floor( Math.random() * max ),
-        message = chosenSet[ random ];
+  const plural = helpers.isPlural(score) ? 's' : '',
+    max = chosenSet.length - 1,
+    random = Math.floor(Math.random() * max),
+    message = chosenSet[random];
 
-  const formattedMessage = format.replace( '<item>', helpers.maybeLinkItem( item ) )
-    .replace( '<score>', score )
-    .replace( '<plural>', plural )
-    .replace( '<message>', message );
+  const formattedMessage = format.replace('<item>', helpers.maybeLinkItem(item))
+    .replace('<score>', score)
+    .replace('<plural>', plural)
+    .replace('<message>', message);
 
   return formattedMessage;
 

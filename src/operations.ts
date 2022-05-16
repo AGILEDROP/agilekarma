@@ -16,11 +16,11 @@ const operations = {
  * @param {string} operation A mathematical operation such as '+' or '-'.
  * @return {string} The name of the operation.
  */
-const getOperationName = ( operation ) => {
+const getOperationName = (operation: string): string => {
   let operationName = '';
 
   /* eslint-disable max-statements-per-line */
-  switch ( operation ) {
+  switch (operation) {
     case '+': operationName = operations.PLUS; break;
     case '-': operationName = operations.MINUS; break;
   }

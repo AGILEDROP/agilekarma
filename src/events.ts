@@ -7,14 +7,14 @@
 
 'use strict';
 
-const slack = require( './slack' ),
-      points = require( './points' ),
-      helpers = require( './helpers' ),
-      messages = require( './messages' ),
-      operations = require( './operations' ),
-      leaderboard = require( './leaderboard' );
+const slack = require('./slack'),
+  points = require('./points'),
+  helpers = require('./helpers'),
+  messages = require('./messages'),
+  operations = require('./operations'),
+  leaderboard = require('./leaderboard');
 
-const camelCase = require( 'lodash.camelcase' );
+const camelCase = require('lodash.camelcase');
 
 const timeLimit = Math.floor(process.env.UNDO_TIME_LIMIT / 60);
 
@@ -27,13 +27,13 @@ const timeLimit = Math.floor(process.env.UNDO_TIME_LIMIT / 60);
  *                         private channels - aka groups) that the message was sent from.
  * @return {Promise} A Promise to send a Slack message back to the requesting channel.
  */
-const handleSelfPlus = ( user, channel ) => {
-  console.log( user + ' tried to alter their own score.' );
-  const message = messages.getRandomMessage( operations.operations.SELF, user );
-  return slack.sendEphemeral( message, channel, user );
+const handleSelfPlus = (user: string, channel: any) => {
+  console.log(user + ' tried to alter their own score.');
+  const message = messages.getRandomMessage(operations.operations.SELF, user);
+  return slack.sendEphemeral(message, channel, user);
 };
 
-const usersList = [];
+const usersList: { voter: any; user: any; }[] = [];
 
 /**
  *
@@ -50,23 +50,23 @@ const usersList = [];
  * @param {string} userVoting     The User voting.
  * @return {Promise<string>} Returns random message.
  */
-const processUserData = async( item, operation, channel, userVoting, description ) => {
-  const dbUserTo = await points.checkUser( item );
-  const dbUserFrom = await points.checkUser( userVoting );
-  const checkChannel = await points.checkChannel( channel );
-  const score = await points.updateScore( dbUserTo, dbUserFrom, checkChannel, description ),
-        operationName = operations.getOperationName( operation );
+const processUserData = async (item: any, operation: any, channel: any, userVoting: any, description: any) => {
+  const dbUserTo = await points.checkUser(item);
+  const dbUserFrom = await points.checkUser(userVoting);
+  const checkChannel = await points.checkChannel(channel);
+  const score = await points.updateScore(dbUserTo, dbUserFrom, checkChannel, description),
+    operationName = operations.getOperationName(operation);
 
-  const findVoter = usersList.find( ( user ) => user.voter === userVoting );
-  if ( findVoter ) {
-    const location = usersList.indexOf( userVoting );
-    usersList.splice( location, 1 );
+  const findVoter = usersList.find((user) => user.voter === userVoting);
+  if (findVoter) {
+    const location = usersList.indexOf(userVoting);
+    usersList.splice(location, 1);
   }
   usersList.push({
     voter: userVoting,
     user: item
   });
-  return messages.getRandomMessage( operationName, item, score );
+  return messages.getRandomMessage(operationName, item, score);
 
 };
 
@@ -83,25 +83,25 @@ const processUserData = async( item, operation, channel, userVoting, description
  * @return {Promise} A Promise to send a Slack message back to the requesting channel after the
  *                   points have been updated.
  */
-const handlePlusMinus = async( item, operation, channel, userVoting, description ) => {
+const handlePlusMinus = async (item: any, operation: string, channel: any, userVoting: any, description: any) => {
   try {
-    if ( '-' === operation ) {
+    if ('-' === operation) {
       return null;
-    } else if ( '+' === operation ) {
+    } else if ('+' === operation) {
 
       // TODO: implement check for ban.
       let message;
-      const userLimit = await points.getDailyUserScore( userVoting );
-      if ( userLimit.operation ) {
-        message = await processUserData( item, operation, channel, userVoting, description );
+      const userLimit = await points.getDailyUserScore(userVoting);
+      if (userLimit.operation) {
+        message = await processUserData(item, operation, channel, userVoting, description);
       } else {
-        return slack.sendEphemeral( userLimit.message, channel, userVoting );
+        return slack.sendEphemeral(userLimit.message, channel, userVoting);
       }
 
-      return slack.sendEphemeral( message, channel, userVoting );
+      return slack.sendEphemeral(message, channel, userVoting);
     }
-  } catch ( err ) {
-    console.error( err.message );
+  } catch (err) {
+    console.error(err.message);
   }
 };
 
@@ -111,33 +111,33 @@ const handlePlusMinus = async( item, operation, channel, userVoting, description
  * @param {*} event     Slack event.
  * @returns {Promise}   A promise sent to slack to send the messate.
  */
-const undoPlus = async( event ) => {
+const undoPlus = async (event: { user: string; channel: any; }) => {
   try {
     let message;
-    const findVoter = usersList.find( ( user ) => user.voter === event.user );
-    if ( findVoter ) {
-      const location = usersList.indexOf( event.user );
-      usersList.splice( location, 1 );
+    const findVoter = usersList.find((user) => user.voter === event.user);
+    if (findVoter) {
+      const location = usersList.indexOf(event.user);
+      usersList.splice(location, 1);
 
-      const score = await points.undoScore( event.user, findVoter.user, event.channel );
+      const score = await points.undoScore(event.user, findVoter.user, event.channel);
       // eslint-disable-next-line no-negated-condition
-      if ( 'undefined' !== typeof score ) {
-        const operationName = operations.getOperationName( '-' );
-        message = messages.getRandomMessage( operationName, findVoter.user, score );
+      if ('undefined' !== typeof score) {
+        const operationName = operations.getOperationName('-');
+        message = messages.getRandomMessage(operationName, findVoter.user, score);
       } else {
         message = 'You can undo only for duration of ' + timeLimit + ' minutes after up voting!';
-        return slack.sendEphemeral( message, event.channel, event.user );
+        return slack.sendEphemeral(message, event.channel, event.user);
       }
 
     } else {
       message = '<@' + event.user + '> there is nothing to undo!';
-      return slack.sendEphemeral( message, event.channel, event.user );
+      return slack.sendEphemeral(message, event.channel, event.user);
     }
 
-    return slack.sendEphemeral( message, event.channel, event.user );
+    return slack.sendEphemeral(message, event.channel, event.user);
 
-  } catch ( err ) {
-    console.log( err.message );
+  } catch (err) {
+    console.log(err.message);
   }
 
 };
@@ -150,7 +150,7 @@ const undoPlus = async( event ) => {
  *                         https://api.slack.com/events/app_mention for details.
  * @returns {Promise} A Promise to send the Slack message.
  */
-const sayThankyou = ( event ) => {
+const sayThankyou = (event: { user: string; channel: any; }) => {
 
   const thankyouMessages = [
     'Don\'t mention it!',
@@ -163,10 +163,10 @@ const sayThankyou = ( event ) => {
     )
   ];
 
-  const randomKey = Math.floor( Math.random() * thankyouMessages.length ),
-        message = '<@' + event.user + '> ' + thankyouMessages[ randomKey ];
+  const randomKey = Math.floor(Math.random() * thankyouMessages.length),
+    message = '<@' + event.user + '> ' + thankyouMessages[randomKey];
 
-  return slack.sendEphemeral( message, event.channel, event.user );
+  return slack.sendEphemeral(message, event.channel, event.user);
 
 }; // SayThankyou.
 
@@ -178,10 +178,10 @@ const sayThankyou = ( event ) => {
  *                         https://api.slack.com/events/app_mention for details.
  * @returns {Promise} A Promise to send the Slack message.
  */
-const sendHelp = async( event ) => {
+const sendHelp = async (event: { text: any; channel: any; user: any; }) => {
 
-  const botUserID = await helpers.extractUserID( event.text );
-  const userName = await slack.getUserName( botUserID ); // 'U01ASBLRRNZ'
+  const botUserID = await helpers.extractUserID(event.text);
+  const userName = await slack.getUserName(botUserID); // 'U01ASBLRRNZ'
 
   // const userList = await slack.getUserList();
   // console.log("USERS: " + JSON.stringify(userList));
@@ -196,7 +196,7 @@ const sendHelp = async( event ) => {
     '• `<@' + userName + '> help`: Display this message.\n\n'
   );
 
-  return slack.sendEphemeral( message, event.channel, event.user );
+  return slack.sendEphemeral(message, event.channel, event.user);
 
 }; // SendHelp.
 
@@ -213,31 +213,31 @@ const handlers = {
    * @return {bool|Promise} Either `false` if the event cannot be handled, or a Promise to send a
    *                        Slack message back to the requesting channel.
    */
-  message: async( event ) => {
+  message: async (event: { text: any; user: any; channel: any; }) => {
 
     // Extract the relevant data from the message text.
-    const { item, operation, description } = helpers.extractPlusMinusEventData( event.text );
+    const { item, operation, description } = helpers.extractPlusMinusEventData(event.text);
 
     const userList = await slack.getUserList();
-    const userIsBot = Boolean(Object.values(userList).find(user => user.id === item && user.is_bot === true));
+    const userIsBot = Boolean(Object.values(userList).find((user: { id: any; is_bot: boolean; }) => user.id === item && user.is_bot === true));
 
-    if ( userIsBot && 'undo' === operation ) {
-      undoPlus( event );
+    if (userIsBot && 'undo' === operation) {
+      undoPlus(event);
       return false;
     }
 
-    if ( ! item || ! operation || userIsBot ) {
+    if (!item || !operation || userIsBot) {
       return false;
     }
 
     // Bail if the user is trying to ++ themselves...
-    if ( item === event.user && '+' === operation ) {
-      handleSelfPlus( event.user, event.channel );
+    if (item === event.user && '+' === operation) {
+      handleSelfPlus(event.user, event.channel);
       return false;
     }
 
     // Otherwise, let's go!
-    return handlePlusMinus( item, operation, event.channel, event.user, description );
+    return handlePlusMinus(item, operation, event.channel, event.user, description);
 
   }, // Message event.
 
@@ -253,7 +253,7 @@ const handlers = {
    *                        to send a Slack message back to the requesting channel - which will be
    *                        handled by the command's own handler.
    */
-  appMention: ( event, request ) => {
+  appMention: (event: { text: any; channel: any; user: any; }, request: any) => {
 
     const appCommandHandlers = {
       leaderboard: leaderboard.handler,
@@ -263,14 +263,14 @@ const handlers = {
       thankyou: sayThankyou
     };
 
-    const validCommands = Object.keys( appCommandHandlers ),
-          appCommand = helpers.extractCommand( event.text, validCommands );
+    const validCommands = Object.keys(appCommandHandlers),
+      appCommand = helpers.extractCommand(event.text, validCommands);
 
-    if ( appCommand ) {
-      return appCommandHandlers[appCommand]( event, request );
+    if (appCommand) {
+      return appCommandHandlers[appCommand](event, request);
     }
 
-    if ( '++' ) {
+    if ('++') {
       return null;
     }
 
@@ -279,7 +279,7 @@ const handlers = {
       'few things I\'ve been trained to do. Send me `help` for more details.'
     );
 
-    return slack.sendEphemeral( defaultMessage, event.channel, event.user );
+    return slack.sendEphemeral(defaultMessage, event.channel, event.user);
 
   } // AppMention event.
 }; // Handlers.
@@ -295,11 +295,11 @@ const handlers = {
  * @return {bool|Promise} Either `false` if the event cannot be handled, or a Promise as returned
  *                        by the event's handler function.
  */
-const handleEvent = ( event, request ) => {
+const handleEvent = (event: { type: string; subtype: string; text: string; }, request: any) => {
 
   // If the event has no type, something has gone wrong.
-  if ( 'undefined' === typeof event.type ) {
-    console.warn( 'Event data missing' );
+  if ('undefined' === typeof event.type) {
+    console.warn('Event data missing');
     return false;
   }
 
@@ -308,24 +308,24 @@ const handleEvent = ( event, request ) => {
   //       allow us to react to messages sent by other bots. However, we'd have to be careful to
   //       filter appropriately, because otherwise we'll also react to messages from ourself.
   //       Because the 'help' output contains commands in it, that could look interesting!
-  if ( 'undefined' !== typeof event.subtype ) {
-    console.warn( 'Unsupported event subtype: ' + event.subtype );
+  if ('undefined' !== typeof event.subtype) {
+    console.warn('Unsupported event subtype: ' + event.subtype);
     return false;
   }
 
   // If there's no text with the event, there's not a lot we can do.
-  if ( 'undefined' === typeof event.text || ! event.text.trim() ) {
-    console.warn( 'Event text missing' );
+  if ('undefined' === typeof event.text || !event.text.trim()) {
+    console.warn('Event text missing');
     return false;
   }
 
   // Providing we have a handler for the event, let's handle it!
-  const eventName = camelCase( event.type );
-  if ( handlers[ eventName ] instanceof Function ) {
-    return handlers[ eventName ] ( event, request );
+  const eventName = camelCase(event.type);
+  if (handlers[eventName] instanceof Function) {
+    return handlers[eventName](event, request);
   }
 
-  console.warn( 'Invalid event received: ' + event.type );
+  console.warn('Invalid event received: ' + event.type);
   return false;
 
 }; // HandleEvent.
