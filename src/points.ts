@@ -12,11 +12,11 @@
 
 'use strict';
 
-const mysql = require( 'mysql' );
-const uuid = require ( 'uuid' );
-const slack = require( './slack' );
+const mysql = require('mysql');
+const uuid = require('uuid');
+const slack = require('./slack');
 const scoresTableName = 'score';
-const moment = require ( 'moment' );
+const moment = require('moment');
 
 /* eslint-disable no-process-env */
 /* eslint-enable no-process-env */
@@ -49,9 +49,9 @@ const timeLimit = process.env.UNDO_TIME_LIMIT;
  * @return {array} An array of entries, each an object containing 'item' (string) and 'score'
  *                (integer) properties.
  */
-const retrieveTopScores = async( startDate, endDate, channelId ) => {
+const retrieveTopScores = async (startDate, endDate, channelId) => {
   let scores = '';
-  await getAllScores( startDate, endDate, channelId ).then( function( result ) {
+  await getAllScores(startDate, endDate, channelId).then(function (result) {
     scores = result;
   });
   return scores;
@@ -77,18 +77,18 @@ const retrieveTopScores = async( startDate, endDate, channelId ) => {
  * @param {string} description
  *   Optional description. To be implemented.
  */
-const updateScore = async( toUserId, fromUserId, channelId, description ) => {
+const updateScore = async (toUserId, fromUserId, channelId, description) => {
 
   // Connect to the DB, and create a table if it's not yet there.
-  await insertScore( toUserId, fromUserId, channelId, description );
+  await insertScore(toUserId, fromUserId, channelId, description);
   let finalResult = '';
-  await getUserScore( toUserId, channelId ).then( function( result ) {
+  await getUserScore(toUserId, channelId).then(function (result) {
     finalResult = result[0].score;
-  }).catch( ( err ) => setImmediate( () => {
+  }).catch((err) => setImmediate(() => {
     throw err;
   })
   );
-  console.log( toUserId + ' now on ' + finalResult );
+  console.log(toUserId + ' now on ' + finalResult);
   return finalResult;
 
 }; // UpdateScore.
@@ -105,35 +105,35 @@ const updateScore = async( toUserId, fromUserId, channelId, description ) => {
  * @returns {Promise<string|*>}
  *   Returned promise.
  */
-const undoScore = async( fromUserId, toUserId, channelId ) => {
+const undoScore = async (fromUserId, toUserId, channelId) => {
   let last;
-  await getLast( fromUserId, channelId ).then(
-    function( result ) {
-      if ( 'undefined' !== typeof result[0]) {
+  await getLast(fromUserId, channelId).then(
+    function (result) {
+      if ('undefined' !== typeof result[0]) {
         last = result[0].score_id;
       }
     }
-  ).catch( ( err ) => setImmediate( () => {
+  ).catch((err) => setImmediate(() => {
     throw err;
   })
   );
 
   // Returning undefined as time run out.
-  if ( 'undefined' === typeof last ) {
+  if ('undefined' === typeof last) {
     return last;
   }
-  await removeLast( last ).catch( ( err ) => setImmediate( () => {
+  await removeLast(last).catch((err) => setImmediate(() => {
     throw err;
   })
   );
   let finalResult = '';
-  await getUserScore( toUserId, channelId ).then( function( result ) {
+  await getUserScore(toUserId, channelId).then(function (result) {
     finalResult = result[0].score;
-  }).catch( ( err ) => setImmediate( () => {
+  }).catch((err) => setImmediate(() => {
     throw err;
   })
   );
-  console.log( toUserId + ' now on ' + finalResult );
+  console.log(toUserId + ' now on ' + finalResult);
   return finalResult;
 
 };
@@ -148,15 +148,15 @@ const undoScore = async( fromUserId, toUserId, channelId ) => {
  * @returns {Promise}
  *   Returned promise.
  */
-const getNewScore = async( toUserId, channelId ) => {
+const getNewScore = async (toUserId, channelId) => {
   let finalResult = '';
-  await getUserScore( toUserId, channelId ).then( function( result ) {
+  await getUserScore(toUserId, channelId).then(function (result) {
     finalResult = result[0].score;
-  }).catch( ( err ) => setImmediate( () => {
+  }).catch((err) => setImmediate(() => {
     throw err;
   })
   );
-  console.log( toUserId + ' now on ' + finalResult );
+  console.log(toUserId + ' now on ' + finalResult);
   return finalResult;
 };
 
@@ -168,22 +168,22 @@ const getNewScore = async( toUserId, channelId ) => {
  * @returns {Promise}
  *   Returned promise.
  */
-const checkUser = async( userId ) => {
+const checkUser = async (userId) => {
   let user = '';
-  const userName = await slack.getUserName( userId );
-  await getUser( userId ).then( function( result ) {
+  const userName = await slack.getUserName(userId);
+  await getUser(userId).then(function (result) {
     user = result[0];
-    if ( 'undefined' === typeof user ) {
+    if ('undefined' === typeof user) {
       user = null;
     } else {
       user = userId;
     }
-  }).catch( ( err ) => setImmediate( () => {
+  }).catch((err) => setImmediate(() => {
     throw err;
   })
   );
-  if ( null === user ) {
-    await insertUser( userId, userName );
+  if (null === user) {
+    await insertUser(userId, userName);
   }
 
   return userId;
@@ -197,22 +197,22 @@ const checkUser = async( userId ) => {
  * @returns {Promise}
  *   Returned promise.
  */
-const checkChannel = async( channelId ) => {
+const checkChannel = async (channelId) => {
   let channel = '';
-  const channelName = await slack.getChannelName( channelId );
-  await getChannel( channelId ).then( function( result ) {
+  const channelName = await slack.getChannelName(channelId);
+  await getChannel(channelId).then(function (result) {
     channel = result[0];
-    if ( 'undefined' === typeof channel ) {
+    if ('undefined' === typeof channel) {
       channel = null;
     } else {
       channel = channelId;
     }
-  }).catch( ( err ) => setImmediate( () => {
+  }).catch((err) => setImmediate(() => {
     throw err;
   })
   );
-  if ( null === channel ) {
-    await insertChannel( channelId, channelName );
+  if (null === channel) {
+    await insertChannel(channelId, channelName);
   }
   return channelId;
 };
@@ -226,20 +226,20 @@ const checkChannel = async( channelId ) => {
  * @returns {Promise}
  *   The promise.
  */
-function getUserScore( item, channelId ) {
-  return new Promise( function( resolve, reject ) {
-    const db = mysql.createConnection( mysqlConfig );
-    const inserts = [ 'score', scoresTableName, item, channelId ];
+function getUserScore(item, channelId) {
+  return new Promise(function (resolve, reject) {
+    const db = mysql.createConnection(mysqlConfig);
+    const inserts = ['score', scoresTableName, item, channelId];
     const str = 'SELECT COUNT(score_id) as ?? FROM ?? WHERE to_user_id = ? AND `channel_id` = ?';
-    const query = mysql.format( str, inserts );
-    db.query( query, [ scoresTableName, item ], function( err, result ) {
-      if ( err ) {
-        reject( err );
+    const query = mysql.format(str, inserts);
+    db.query(query, [scoresTableName, item], function (err, result) {
+      if (err) {
+        reject(err);
       } else {
-        resolve( result );
+        resolve(result);
       }
     });
-    
+
     db.end(dbErrorHandler);
 
   });
@@ -253,49 +253,49 @@ function getUserScore( item, channelId ) {
  * @returns {Promise}
  *   The promise.
  */
-function getAllScores( startDate, endDate, channelId ) {
-  return new Promise( function( resolve, reject ) {
-    const db = mysql.createConnection( mysqlConfig );
+function getAllScores(startDate, endDate, channelId) {
+  return new Promise(function (resolve, reject) {
+    const db = mysql.createConnection(mysqlConfig);
     let str = '';
     let start;
     let end;
     let inserts;
-    
+
     let channels = channelId.split(',');
 
     let where_str = 'WHERE (';
     where_str += channels.map(x => { return "`channel_id` = '" + x + "'" }).join(" OR ");
     where_str += ')';
 
-    if ( 'undefined' !== typeof startDate || 'undefined' !== typeof endDate) {
-      start = moment.unix( startDate ).format( 'YYYY-MM-DD HH:mm:ss' );
-      end = moment.unix( endDate ).format( 'YYYY-MM-DD HH:mm:ss' );
+    if ('undefined' !== typeof startDate || 'undefined' !== typeof endDate) {
+      start = moment.unix(startDate).format('YYYY-MM-DD HH:mm:ss');
+      end = moment.unix(endDate).format('YYYY-MM-DD HH:mm:ss');
     } else {
-      start = moment( 0 ).format( 'YYYY-MM-DD HH:mm:ss' );
-      end = moment( Date.now() ).format( 'YYYY-MM-DD HH:mm:ss' );
+      start = moment(0).format('YYYY-MM-DD HH:mm:ss');
+      end = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
     }
 
 
-    if ( 'all' === channelId ) {
-      inserts = [ start, end ];
+    if ('all' === channelId) {
+      inserts = [start, end];
       str = 'SELECT to_user_id as item, COUNT(score_id) as score FROM `score` WHERE (`timestamp` > ? AND `timestamp` < ?) GROUP BY to_user_id ORDER BY score DESC';
-    } else if ( 'all' !== channelId && channels.length === 1) {
-      inserts = [ channelId, start, end ];
+    } else if ('all' !== channelId && channels.length === 1) {
+      inserts = [channelId, start, end];
       str = 'SELECT to_user_id as item, COUNT(score_id) as score FROM `score` WHERE `channel_id` = ? AND (`timestamp` > ? AND `timestamp` < ?) GROUP BY to_user_id ORDER BY score DESC';
-    } else if ( 'undefined' !== typeof channelId ) {
-      inserts = [ start, end ];
+    } else if ('undefined' !== typeof channelId) {
+      inserts = [start, end];
       str = 'SELECT to_user_id as item, COUNT(score_id) as score FROM `score` ' + where_str + ' AND (`timestamp` > ? AND `timestamp` < ?) GROUP BY to_user_id ORDER BY score DESC';
     } else {
       str = 'SELECT to_user_id as item, COUNT(score_id) as score FROM `score` GROUP BY to_user_id ORDER BY score DESC';
     }
 
-    const query = mysql.format( str, inserts );
-    db.query( query, function( err, result ) {
-      if ( err ) {
-        console.log( db.sql );
-        reject( err );
+    const query = mysql.format(str, inserts);
+    db.query(query, function (err, result) {
+      if (err) {
+        console.log(db.sql);
+        reject(err);
       } else {
-        resolve( result );
+        resolve(result);
       }
     });
 
@@ -312,33 +312,33 @@ function getAllScores( startDate, endDate, channelId ) {
  * @returns {Promise}
  *   The promise.
  */
-function getAllScoresFromUser( startDate, endDate, channelId ) {
-  return new Promise( function( resolve, reject ) {
-    const db = mysql.createConnection( mysqlConfig );
+function getAllScoresFromUser(startDate, endDate, channelId) {
+  return new Promise(function (resolve, reject) {
+    const db = mysql.createConnection(mysqlConfig);
     let str = '';
     let start;
     let end;
 
-    if ( 'undefined' !== typeof startDate || 'undefined' !== typeof endDate) {
-      start = moment.unix( startDate ).format( 'YYYY-MM-DD HH:mm:ss' );
-      end = moment.unix( endDate ).format( 'YYYY-MM-DD HH:mm:ss' );
+    if ('undefined' !== typeof startDate || 'undefined' !== typeof endDate) {
+      start = moment.unix(startDate).format('YYYY-MM-DD HH:mm:ss');
+      end = moment.unix(endDate).format('YYYY-MM-DD HH:mm:ss');
     } else {
-      start = moment( Date.now() ).startOf('month').format( 'YYYY-MM-DD HH:mm:ss' );
-      end = moment( Date.now() ).format( 'YYYY-MM-DD HH:mm:ss' );
+      start = moment(Date.now()).startOf('month').format('YYYY-MM-DD HH:mm:ss');
+      end = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
     }
 
-    const inserts = [ channelId, start, end ];
+    const inserts = [channelId, start, end];
 
     // eslint-disable-next-line no-negated-condition
     str = 'SELECT to_user_id as item, ANY_VALUE(from_user_id) as from_user_id, channel_id, COUNT(score_id) as score FROM `score` WHERE `channel_id` = ? AND (`timestamp` > ? AND `timestamp` < ?) GROUP BY to_user_id ORDER BY score DESC';
 
-    const query = mysql.format( str, inserts );
-    db.query( query, function( err, result ) {
-      if ( err ) {
-        console.log( db.sql );
-        reject( err );
+    const query = mysql.format(str, inserts);
+    db.query(query, function (err, result) {
+      if (err) {
+        console.log(db.sql);
+        reject(err);
       } else {
-        resolve( result );
+        resolve(result);
       }
     });
   });
@@ -354,8 +354,8 @@ function getAllScoresFromUser( startDate, endDate, channelId ) {
  *   The promise.
  */
 const getKarmaFeed = (itemsPerPage, page, searchString, channelId, startDate, endDate) => {
-  return new Promise( function( resolve, reject ) {
-    const db = mysql.createConnection( mysqlConfig );
+  return new Promise(function (resolve, reject) {
+    const db = mysql.createConnection(mysqlConfig);
 
     let start;
     let end;
@@ -368,61 +368,61 @@ const getKarmaFeed = (itemsPerPage, page, searchString, channelId, startDate, en
     where_str += channels.map(x => { return "channel.channel_id = '" + x + "'" }).join(" OR ");
     where_str += ')';
 
-    if ( 'undefined' !== typeof startDate || 'undefined' !== typeof endDate) {
-      start = moment.unix( startDate ).format( 'YYYY-MM-DD HH:mm:ss' );
-      end = moment.unix( endDate ).format( 'YYYY-MM-DD HH:mm:ss' );
+    if ('undefined' !== typeof startDate || 'undefined' !== typeof endDate) {
+      start = moment.unix(startDate).format('YYYY-MM-DD HH:mm:ss');
+      end = moment.unix(endDate).format('YYYY-MM-DD HH:mm:ss');
     } else {
-      start = moment( Date.now() ).startOf('month').format( 'YYYY-MM-DD HH:mm:ss' );
-      end = moment( Date.now() ).format( 'YYYY-MM-DD HH:mm:ss' );
+      start = moment(Date.now()).startOf('month').format('YYYY-MM-DD HH:mm:ss');
+      end = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
     }
 
-    if ( 'all' === channelId && !searchString && channels.length === 1 ) {
+    if ('all' === channelId && !searchString && channels.length === 1) {
       searchForm = 'WHERE (score.timestamp > \'' + start + '\' AND score.timestamp < \'' + end + '\') ';
-    } else if ( 'all' === channelId && searchString && channels.length === 1 ) {
+    } else if ('all' === channelId && searchString && channels.length === 1) {
       searchForm = 'WHERE (score.timestamp > \'' + start + '\' AND score.timestamp < \'' + end + '\') AND uFrom.user_name LIKE \'%' + searchString + '%\' ';
-    } else if ( 'all' !== channelId && !searchString && channels.length === 1 ) {
+    } else if ('all' !== channelId && !searchString && channels.length === 1) {
       searchForm = 'WHERE channel.channel_id = \'' + channelId + '\' AND (score.timestamp > \'' + start + '\' AND score.timestamp < \'' + end + '\') ';
-    } else if ( 'all' !== channelId && searchString && channels.length === 1 ) {
+    } else if ('all' !== channelId && searchString && channels.length === 1) {
       searchForm = 'WHERE channel.channel_id = \'' + channelId + '\' AND (score.timestamp > \'' + start + '\' AND score.timestamp < \'' + end + '\') AND uFrom.user_name LIKE \'%' + searchString + '%\' ';
-    } else if ( 'all' !== channelId && !searchString) {
+    } else if ('all' !== channelId && !searchString) {
       searchForm = where_str + ' AND (score.timestamp > \'' + start + '\' AND score.timestamp < \'' + end + '\') ';
-    } else if ( 'all' !== channelId && searchString) {
+    } else if ('all' !== channelId && searchString) {
       searchForm = where_str + ' AND (score.timestamp > \'' + start + '\' AND score.timestamp < \'' + end + '\') AND uFrom.user_name LIKE \'%' + searchString + '%\' ';
     }
 
     let countScores = 'SELECT COUNT(*) AS scores ' +
-                      'FROM score ' +
-                      'INNER JOIN channel ON score.channel_id = channel.channel_id ' +
-                      'INNER JOIN user uTo ON score.to_user_id = uTo.user_id ' +
-                      'INNER JOIN user uFrom ON score.from_user_id = uFrom.user_id ' +
-                      searchForm;
+      'FROM score ' +
+      'INNER JOIN channel ON score.channel_id = channel.channel_id ' +
+      'INNER JOIN user uTo ON score.to_user_id = uTo.user_id ' +
+      'INNER JOIN user uFrom ON score.from_user_id = uFrom.user_id ' +
+      searchForm;
 
     let str = 'SELECT score.timestamp, uTo.user_name as toUser, uFrom.user_name as fromUser, channel.channel_name, score.description ' +
-              'FROM score ' +
-              'INNER JOIN channel ON score.channel_id = channel.channel_id ' +
-              'INNER JOIN user uTo ON score.to_user_id = uTo.user_id ' +
-              'INNER JOIN user uFrom ON score.from_user_id = uFrom.user_id ' +
-              searchForm + 
-              'ORDER BY score.timestamp DESC LIMIT ' + itemsPerPage + ' OFFSET ' + (page - 1) * itemsPerPage;
+      'FROM score ' +
+      'INNER JOIN channel ON score.channel_id = channel.channel_id ' +
+      'INNER JOIN user uTo ON score.to_user_id = uTo.user_id ' +
+      'INNER JOIN user uFrom ON score.from_user_id = uFrom.user_id ' +
+      searchForm +
+      'ORDER BY score.timestamp DESC LIMIT ' + itemsPerPage + ' OFFSET ' + (page - 1) * itemsPerPage;
 
-    const query = mysql.format( str );
-    const queryCount = mysql.format( countScores );
+    const query = mysql.format(str);
+    const queryCount = mysql.format(countScores);
 
-    const queryResult = db.query( query, function( err, result ) {
+    const queryResult = db.query(query, function (err, result) {
 
-      if ( err ) {
-        console.log( db.sql );
-        reject( err );
+      if (err) {
+        console.log(db.sql);
+        reject(err);
       }
 
-      db.query( queryCount, function( errCount, resultCount ) {
+      db.query(queryCount, function (errCount, resultCount) {
 
-        if ( errCount ) {
-          console.log( db.sql );
-          reject( errCount );
+        if (errCount) {
+          console.log(db.sql);
+          reject(errCount);
         }
 
-        resolve({count: resultCount[0].scores, results: result});
+        resolve({ count: resultCount[0].scores, results: result });
 
         db.end(dbErrorHandler);
 
@@ -442,18 +442,18 @@ const getKarmaFeed = (itemsPerPage, page, searchString, channelId, startDate, en
  * @returns {Promise<{message: string, operation: boolean}|{message: null, operation: boolean}>}
  *   Returns promise with message and operation.
  */
-const getDailyUserScore = async( fromUserId ) => {
+const getDailyUserScore = async (fromUserId) => {
   const limit = votingLimit;
   let scoreCount;
-  await getDayilyVotesByUser( fromUserId ).then( function( result ) {
+  await getDayilyVotesByUser(fromUserId).then(function (result) {
     scoreCount = result;
   });
-  if ( 'undefined' !== scoreCount && limit >= scoreCount[0].daily_votes + 1 ) {
+  if ('undefined' !== scoreCount && limit >= scoreCount[0].daily_votes + 1) {
     return {
       operation: true,
       message: null
     };
-  } else if ( 'undefined' !== scoreCount && limit < scoreCount[0].daily_votes + 1 ) {
+  } else if ('undefined' !== scoreCount && limit < scoreCount[0].daily_votes + 1) {
     return {
       operation: false,
       message: 'You have reached your daily voting limit!'
@@ -480,21 +480,21 @@ const getDailyUserScore = async( fromUserId ) => {
  * @returns {Promise}
  *   The promise.
  */
-function insertScore( toUserId, fromUserId, channelId, description = null ) {
+function insertScore(toUserId, fromUserId, channelId, description = null) {
 
-  return new Promise( function( resolve, reject ) {
-    const db = mysql.createConnection( mysqlConfig );
+  return new Promise(function (resolve, reject) {
+    const db = mysql.createConnection(mysqlConfig);
     // eslint-disable-next-line no-magic-numbers
-    const ts = moment( Date.now() ).format( 'YYYY-MM-DD HH:mm:ss' );
-    const inserts = [ 'score', 'timestamp', uuid.v4(), ts, toUserId, fromUserId, channelId, description ];
+    const ts = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
+    const inserts = ['score', 'timestamp', uuid.v4(), ts, toUserId, fromUserId, channelId, description];
     const str = 'INSERT INTO ?? (score_id, ??, to_user_id, from_user_id, channel_id, description) VALUES (?,?,?,?,?,?);';
-    const query = mysql.format( str, inserts );
-    db.query( query, function( err, result ) {
-      if ( err ) {
-        console.log( db.sql );
-        reject( err );
+    const query = mysql.format(str, inserts);
+    db.query(query, function (err, result) {
+      if (err) {
+        console.log(db.sql);
+        reject(err);
       } else {
-        resolve( result );
+        resolve(result);
       }
     });
 
@@ -511,18 +511,18 @@ function insertScore( toUserId, fromUserId, channelId, description = null ) {
  * @returns {Promise}
  *  Returned promise.
  */
-function getUser( userId ) {
-  return new Promise( function( resolve, reject ) {
-    const db = mysql.createConnection( mysqlConfig );
+function getUser(userId) {
+  return new Promise(function (resolve, reject) {
+    const db = mysql.createConnection(mysqlConfig);
     const str = 'SELECT user_id FROM ?? WHERE user_id = ?';
-    const inserts = [ 'user', userId ];
-    const query = mysql.format( str, inserts );
-    db.query( query, function( err, result ) {
-      if ( err ) {
-        console.log( db.sql );
-        reject( err );
+    const inserts = ['user', userId];
+    const query = mysql.format(str, inserts);
+    db.query(query, function (err, result) {
+      if (err) {
+        console.log(db.sql);
+        reject(err);
       } else {
-        resolve( result );
+        resolve(result);
       }
     });
 
@@ -539,18 +539,18 @@ function getUser( userId ) {
  * @returns {Promise}
  *  Returned promise.
  */
-function getName( username ) {
-  return new Promise( function( resolve, reject ) {
-    const db = mysql.createConnection( mysqlConfig );
+function getName(username) {
+  return new Promise(function (resolve, reject) {
+    const db = mysql.createConnection(mysqlConfig);
     const str = 'SELECT user_name FROM ?? WHERE user_username = ?';
-    const inserts = [ 'user', username ];
-    const query = mysql.format( str, inserts );
-    db.query( query, function( err, result ) {
-      if ( err ) {
-        console.log( db.sql );
-        reject( err );
+    const inserts = ['user', username];
+    const query = mysql.format(str, inserts);
+    db.query(query, function (err, result) {
+      if (err) {
+        console.log(db.sql);
+        reject(err);
       } else {
-        resolve( result[0].user_name );
+        resolve(result[0].user_name);
       }
     });
 
@@ -567,18 +567,18 @@ function getName( username ) {
  * @returns {Promise}
  *  Returned promise.
  */
-function getUserId( username ) {
-  return new Promise( function( resolve, reject ) {
-    const db = mysql.createConnection( mysqlConfig );
+function getUserId(username) {
+  return new Promise(function (resolve, reject) {
+    const db = mysql.createConnection(mysqlConfig);
     const str = 'SELECT user_id FROM ?? WHERE user_username = ?';
-    const inserts = [ 'user', username ];
-    const query = mysql.format( str, inserts );
-    db.query( query, function( err, result ) {
-      if ( err ) {
-        console.log( db.sql );
-        reject( err );
+    const inserts = ['user', username];
+    const query = mysql.format(str, inserts);
+    db.query(query, function (err, result) {
+      if (err) {
+        console.log(db.sql);
+        reject(err);
       } else {
-        resolve( result[0].user_id );
+        resolve(result[0].user_id);
       }
     });
 
@@ -587,12 +587,12 @@ function getUserId( username ) {
   });
 }
 
-const getAll = async( username, fromTo, channel, itemsPerPage, page, searchString ) => {
+const getAll = async (username, fromTo, channel, itemsPerPage, page, searchString) => {
 
-  const userId = await getUserId( username );
+  const userId = await getUserId(username);
 
-  return new Promise( function( resolve, reject ) {
-    const db = mysql.createConnection( mysqlConfig );
+  return new Promise(function (resolve, reject) {
+    const db = mysql.createConnection(mysqlConfig);
 
     let whereUser = '';
     let paginationParams = '';
@@ -602,7 +602,7 @@ const getAll = async( username, fromTo, channel, itemsPerPage, page, searchStrin
         whereUser = 'WHERE to_user_id = \'' + userId + '\'';
       } else {
         whereUser = 'WHERE to_user_id = \'' + userId + '\' AND channel.channel_id = \'' + channel + '\'';
-      } 
+      }
     } else if (fromTo === 'to') {
       if (channel === 'all' || undefined === channel) {
         whereUser = 'WHERE from_user_id = \'' + userId + '\'';
@@ -633,39 +633,39 @@ const getAll = async( username, fromTo, channel, itemsPerPage, page, searchStrin
     }
 
     const countScores = 'SELECT COUNT(*) AS scores ' +
-    'FROM score ' +
-    'INNER JOIN channel ON score.channel_id = channel.channel_id ' +
-    'INNER JOIN user uTo ON score.to_user_id = uTo.user_id ' +
-    'INNER JOIN user uFrom ON score.from_user_id = uFrom.user_id ' +
-    whereUser;
+      'FROM score ' +
+      'INNER JOIN channel ON score.channel_id = channel.channel_id ' +
+      'INNER JOIN user uTo ON score.to_user_id = uTo.user_id ' +
+      'INNER JOIN user uFrom ON score.from_user_id = uFrom.user_id ' +
+      whereUser;
 
     const str = 'SELECT score.timestamp, uTo.user_name as toUser, uFrom.user_name as fromUser, channel.channel_name, score.description ' +
-    'FROM score ' +
-    'INNER JOIN channel ON score.channel_id = channel.channel_id ' +
-    'INNER JOIN user uTo ON score.to_user_id = uTo.user_id ' +
-    'INNER JOIN user uFrom ON score.from_user_id = uFrom.user_id ' +
-    whereUser +
-    'ORDER BY score.timestamp DESC ' +
-    paginationParams;
+      'FROM score ' +
+      'INNER JOIN channel ON score.channel_id = channel.channel_id ' +
+      'INNER JOIN user uTo ON score.to_user_id = uTo.user_id ' +
+      'INNER JOIN user uFrom ON score.from_user_id = uFrom.user_id ' +
+      whereUser +
+      'ORDER BY score.timestamp DESC ' +
+      paginationParams;
 
-    const query = mysql.format( str );
-    const queryCount = mysql.format( countScores );
+    const query = mysql.format(str);
+    const queryCount = mysql.format(countScores);
 
-    const queryResult = db.query( query, function( err, result ) {
+    const queryResult = db.query(query, function (err, result) {
 
-      if ( err ) {
-        console.log( db.sql );
-        reject( err );
+      if (err) {
+        console.log(db.sql);
+        reject(err);
       }
 
-      db.query( queryCount, function( errCount, resultCount ) {
-  
-        if ( errCount ) {
-          console.log( db.sql );
-          reject( errCount );
+      db.query(queryCount, function (errCount, resultCount) {
+
+        if (errCount) {
+          console.log(db.sql);
+          reject(errCount);
         }
-        
-        resolve({count: resultCount[0].scores, feed: result});
+
+        resolve({ count: resultCount[0].scores, feed: result });
         db.end(dbErrorHandler);
 
       });
@@ -684,19 +684,19 @@ const getAll = async( username, fromTo, channel, itemsPerPage, page, searchStrin
  * @returns {Promise}
  *   Returned promise.
  */
-function insertUser( userId, userName ) {
-  return new Promise( function( resolve, reject ) {
-    const db = mysql.createConnection( mysqlConfig );
+function insertUser(userId, userName) {
+  return new Promise(function (resolve, reject) {
+    const db = mysql.createConnection(mysqlConfig);
     const lowcaseUserName = userName.split(" ").join("").toLocaleLowerCase();
     const str = 'INSERT INTO ?? (user_id, user_name, user_username, banned_until) VALUES (?, ?, ?, NULL);';
-    const inserts = [ 'user', userId, userName, lowcaseUserName ];
-    const query = mysql.format( str, inserts );
-    db.query( query, function( err, result ) {
-      if ( err ) {
-        console.log( db.sql );
-        reject( err );
+    const inserts = ['user', userId, userName, lowcaseUserName];
+    const query = mysql.format(str, inserts);
+    db.query(query, function (err, result) {
+      if (err) {
+        console.log(db.sql);
+        reject(err);
       } else {
-        resolve( result );
+        resolve(result);
       }
     });
 
@@ -713,18 +713,18 @@ function insertUser( userId, userName ) {
  * @returns {Promise}
  *   Returned promise.
  */
-function getChannel( channelId ) {
-  return new Promise( function( resolve, reject ) {
-    const db = mysql.createConnection( mysqlConfig );
+function getChannel(channelId) {
+  return new Promise(function (resolve, reject) {
+    const db = mysql.createConnection(mysqlConfig);
     const str = 'SELECT channel_id FROM ?? WHERE channel_id = ?;';
-    const inserts = [ 'channel', channelId ];
-    const query = mysql.format( str, inserts );
-    db.query( query, function( err, result ) {
-      if ( err ) {
-        console.log( db.sql );
-        reject( err );
+    const inserts = ['channel', channelId];
+    const query = mysql.format(str, inserts);
+    db.query(query, function (err, result) {
+      if (err) {
+        console.log(db.sql);
+        reject(err);
       } else {
-        resolve( result );
+        resolve(result);
       }
     });
 
@@ -743,18 +743,18 @@ function getChannel( channelId ) {
  * @returns {Promise}
  *   Returned promise.
  */
-function insertChannel( channelId, channelName ) {
-  return new Promise( function( resolve, reject ) {
-    const db = mysql.createConnection( mysqlConfig );
+function insertChannel(channelId, channelName) {
+  return new Promise(function (resolve, reject) {
+    const db = mysql.createConnection(mysqlConfig);
     const str = 'INSERT INTO ?? (channel_id, channel_name) VALUES (?, ?);';
-    const inserts = [ 'channel', channelId, channelName ];
-    const query = mysql.format( str, inserts );
-    db.query( query, function( err, result ) {
-      if ( err ) {
-        console.log( db.sql );
-        reject( err );
+    const inserts = ['channel', channelId, channelName];
+    const query = mysql.format(str, inserts);
+    db.query(query, function (err, result) {
+      if (err) {
+        console.log(db.sql);
+        reject(err);
       } else {
-        resolve( result );
+        resolve(result);
       }
     });
 
@@ -773,19 +773,19 @@ function insertChannel( channelId, channelName ) {
  * @returns {Promise}
  *   Returned promise.
  */
-function getLast( fromUserId, channelId ) {
-  return new Promise( function( resolve, reject ) {
-    const db = mysql.createConnection( mysqlConfig );
-    const timestamp = moment( Date.now() ).subtract( timeLimit, 'seconds' ).format( 'YYYY-MM-DD HH:mm:ss' );
+function getLast(fromUserId, channelId) {
+  return new Promise(function (resolve, reject) {
+    const db = mysql.createConnection(mysqlConfig);
+    const timestamp = moment(Date.now()).subtract(timeLimit, 'seconds').format('YYYY-MM-DD HH:mm:ss');
     const str = 'SELECT `score_id`, `timestamp` FROM `score` WHERE `from_user_id` = ? AND `timestamp` >= ? AND `channel_id` = ? ORDER BY `timestamp` DESC LIMIT 1;';
-    const inserts = [ fromUserId, timestamp, channelId ];
-    const query = mysql.format( str, inserts );
-    db.query( query, function( err, result ) {
-      if ( err ) {
-        console.log( db.sql );
-        reject( err );
+    const inserts = [fromUserId, timestamp, channelId];
+    const query = mysql.format(str, inserts);
+    db.query(query, function (err, result) {
+      if (err) {
+        console.log(db.sql);
+        reject(err);
       } else {
-        resolve( result );
+        resolve(result);
       }
     });
 
@@ -802,18 +802,18 @@ function getLast( fromUserId, channelId ) {
  * @returns {Promise}
  *   The returned promise.
  */
-function removeLast( scoreId ) {
-  return new Promise( function( resolve, reject ) {
-    const db = mysql.createConnection( mysqlConfig );
+function removeLast(scoreId) {
+  return new Promise(function (resolve, reject) {
+    const db = mysql.createConnection(mysqlConfig);
     const str = 'DELETE FROM `score` WHERE `score_id` = ?;';
-    const inserts = [ scoreId ];
-    const query = mysql.format( str, inserts );
-    db.query( query, function( err, result ) {
-      if ( err ) {
-        console.log( db.sql );
-        reject( err );
+    const inserts = [scoreId];
+    const query = mysql.format(str, inserts);
+    db.query(query, function (err, result) {
+      if (err) {
+        console.log(db.sql);
+        reject(err);
       } else {
-        resolve( result );
+        resolve(result);
       }
     });
 
@@ -830,20 +830,20 @@ function removeLast( scoreId ) {
  * @returns {Promise}
  *   Returned promise.
  */
-function getDayilyVotesByUser( fromUserId ) {
+function getDayilyVotesByUser(fromUserId) {
 
-  return new Promise( function( resolve, reject ) {
-    const date = moment( Date.now() ).format( 'YYYY-MM-DD' );
-    const db = mysql.createConnection( mysqlConfig );
+  return new Promise(function (resolve, reject) {
+    const date = moment(Date.now()).format('YYYY-MM-DD');
+    const db = mysql.createConnection(mysqlConfig);
     const str = 'SELECT COUNT(score_id) as daily_votes from score where DATE(`timestamp`) = ? AND from_user_id = ?;';
-    const inserts = [ date, fromUserId ];
-    const query = mysql.format( str, inserts );
-    db.query( query, function( err, result ) {
-      if ( err ) {
-        console.log( db.sql );
-        reject( err );
+    const inserts = [date, fromUserId];
+    const query = mysql.format(str, inserts);
+    db.query(query, function (err, result) {
+      if (err) {
+        console.log(db.sql);
+        reject(err);
       } else {
-        resolve( result );
+        resolve(result);
       }
     });
 
@@ -859,17 +859,17 @@ function getDayilyVotesByUser( fromUserId ) {
  *   The promise.
  */
 const getAllChannels = () => {
-  return new Promise( function( resolve, reject ) {
-    const db = mysql.createConnection( mysqlConfig );
+  return new Promise(function (resolve, reject) {
+    const db = mysql.createConnection(mysqlConfig);
     let str = 'SELECT * FROM channel';
 
-    const query = mysql.format( str );
-    db.query( query, function( err, result ) {
-      if ( err ) {
-        console.log( db.sql );
-        reject( err );
+    const query = mysql.format(str);
+    db.query(query, function (err, result) {
+      if (err) {
+        console.log(db.sql);
+        reject(err);
       } else {
-        resolve( result );
+        resolve(result);
       }
     });
 
@@ -877,6 +877,8 @@ const getAllChannels = () => {
 
   });
 }
+
+export { };
 
 module.exports = {
   retrieveTopScores,

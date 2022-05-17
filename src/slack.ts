@@ -21,7 +21,7 @@ let slack, users;
  *                           https://github.com/slackapi/node-slack-sdk/blob/master/src/WebClient.ts
  * @returns {void}
  */
-const setSlackClient = ( client ) => {
+const setSlackClient = (client) => {
   slack = client;
 };
 
@@ -30,23 +30,23 @@ const setSlackClient = ( client ) => {
  *
  * @returns {object} A collection of Slack user objects, indexed by the user IDs (Uxxxxxxxx).
  */
-const getUserList = async() => {
+const getUserList = async () => {
 
-  if ( users ) {
+  if (users) {
     return users;
   }
 
-  console.log( 'Retrieving user list from Slack.' );
+  console.log('Retrieving user list from Slack.');
 
   users = {};
   const userList = await slack.users.list();
 
-  if ( ! userList.ok ) {
-    throw Error( 'Error occurred retrieving user list from Slack.' );
+  if (!userList.ok) {
+    throw Error('Error occurred retrieving user list from Slack.');
   }
 
-  for ( const user of userList.members ) {
-    users[ user.id ] = user;
+  for (const user of userList.members) {
+    users[user.id] = user;
   }
 
   return users;
@@ -61,25 +61,25 @@ const getUserList = async() => {
  * @param {bool}   username Whether the username should always be returned instead of the real name.
  * @returns {string} The user's real name, as per their Slack profile.
  */
-const getUserName = async( userId, username = false ) => {
+const getUserName = async (userId, username = false) => {
 
   const users = await getUserList();
-  let user = users[ userId ];
+  let user = users[userId];
 
-  if ( 'undefined' === typeof user ) {
+  if ('undefined' === typeof user) {
 
     //Get new list from slack and match the id
     const userList = await slack.users.list();
 
-    user = userList.members.find( user => user.id == userId );
+    user = userList.members.find(user => user.id == userId);
   }
 
   //If still not found return unknown
-  if ( 'undefined' === typeof user ) {
+  if ('undefined' === typeof user) {
     return '(unknown)';
   }
 
-  return username || ! user.profile.real_name ? user.name : user.profile.real_name;
+  return username || !user.profile.real_name ? user.name : user.profile.real_name;
 
 };
 
@@ -93,7 +93,7 @@ const getUserName = async( userId, username = false ) => {
  *                                be provided as part of the payload in the previous argument.
  * @return {Promise} A Promise to send the message to Slack.
  */
-const sendMessage = ( text, channel ) => {
+const sendMessage = (text, channel) => {
 
   let payload = {
     channel,
@@ -101,16 +101,16 @@ const sendMessage = ( text, channel ) => {
   };
 
   // If 'text' was provided as an object instead, merge it into the payload.
-  if ( 'object' === typeof text ) {
+  if ('object' === typeof text) {
     delete payload.text;
-    payload = Object.assign( payload, text );
+    payload = Object.assign(payload, text);
   }
 
-  return new Promise( ( resolve, reject ) => {
-    slack.chat.postMessage( payload ).then( ( data ) => {
+  return new Promise((resolve, reject) => {
+    slack.chat.postMessage(payload).then((data) => {
 
-      if ( ! data.ok ) {
-        console.error( 'Error occurred posting response.' );
+      if (!data.ok) {
+        console.error('Error occurred posting response.');
         return reject();
       }
 
@@ -131,7 +131,7 @@ const sendMessage = ( text, channel ) => {
  * @param {string}        user    UserId to sent the message to.
  * @return {Promise} A Promise to send the message to Slack.
  */
-const sendEphemeral = ( text, channel, user ) => {
+const sendEphemeral = (text, channel, user) => {
 
   let payload = {
     channel,
@@ -140,16 +140,16 @@ const sendEphemeral = ( text, channel, user ) => {
   };
 
   // If 'text' was provided as an object instead, merge it into the payload.
-  if ( 'object' === typeof text ) {
+  if ('object' === typeof text) {
     delete payload.text;
-    payload = Object.assign( payload, text );
+    payload = Object.assign(payload, text);
   }
 
-  return new Promise( ( resolve, reject ) => {
-    slack.chat.postEphemeral( payload ).then( ( data ) => {
+  return new Promise((resolve, reject) => {
+    slack.chat.postEphemeral(payload).then((data) => {
 
-      if ( ! data.ok ) {
-        console.error( 'Error occurred posting response.' );
+      if (!data.ok) {
+        console.error('Error occurred posting response.');
         return reject();
       }
 
@@ -169,7 +169,7 @@ const sendEphemeral = ( text, channel, user ) => {
  * @returns {boolean}
  *   Returns T|F.
  */
-function channelFilter( channelData ) {
+function channelFilter(channelData) {
   return this === channelData.id;
 }
 
@@ -182,22 +182,24 @@ function channelFilter( channelData ) {
  * @returns {Promise}
  *   Returned promise./
  */
-const getChannelName = async( channelId ) => {
+const getChannelName = async (channelId) => {
   const channelList = await slack.conversations.list({
     // eslint-disable-next-line camelcase
     exclude_archived: true,
     types: 'public_channel,private_channel',
     limit: 1000
   });
-  const channel = channelList.channels.filter( channelFilter, channelId );
+  const channel = channelList.channels.filter(channelFilter, channelId);
 
-  if ( 'undefined' === typeof channel ) {
+  if ('undefined' === typeof channel) {
     return '(unknown)';
   }
 
   return channel[0].name;
 
 };
+
+export { };
 
 module.exports = {
   setSlackClient,

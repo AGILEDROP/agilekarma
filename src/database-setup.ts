@@ -108,3 +108,5 @@ function createUserTable() {
 prepareDatabase().catch(function (reason) {
   console.log(reason);
 });
+
+export { };

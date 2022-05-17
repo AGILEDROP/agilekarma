@@ -84,4 +84,6 @@ if (require.main === module) {
   bootstrap();
 }
 
+export { };
+
 module.exports = bootstrap;

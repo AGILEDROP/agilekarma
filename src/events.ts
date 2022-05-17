@@ -50,7 +50,7 @@ const usersList: { voter: any; user: any; }[] = [];
  * @param {string} userVoting     The User voting.
  * @return {Promise<string>} Returns random message.
  */
-const processUserData = async (item: any, operation: any, channel: any, userVoting: any, description: any) => {
+const processUserData = async (item: string, operation: string, channel: string, userVoting: number, description: string) => {
   const dbUserTo = await points.checkUser(item);
   const dbUserFrom = await points.checkUser(userVoting);
   const checkChannel = await points.checkChannel(channel);
@@ -329,6 +329,8 @@ const handleEvent = (event: { type: string; subtype: string; text: string; }, re
   return false;
 
 }; // HandleEvent.
+
+export { };
 
 module.exports = {
   handleSelfPlus,
