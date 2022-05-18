@@ -485,7 +485,7 @@ const getDailyUserScore = async (fromUserId: string) => {
  * @returns {Promise}
  *   The promise.
  */
-function insertScore(toUserId: Date, fromUserId: Date, channelId: string, description: undefined = null) {
+function insertScore(toUserId: string, fromUserId: string, channelId: string, description: undefined = null) {
 
   return new Promise(function (resolve, reject) {
     const db = mysql.createConnection(mysqlConfig);

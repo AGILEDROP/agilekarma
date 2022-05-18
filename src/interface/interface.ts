@@ -9,3 +9,15 @@ export interface Points {
     )
         : any
 }
+
+export interface Events {
+    (
+        item?: string,
+        operation?: string,
+        channel?: string,
+        userVoting?: string,
+        description?: string,
+
+    )
+        : Promise<string>
+}

@@ -12,7 +12,7 @@
 const helpers = require('./helpers'),
   operations = require('./operations').operations;
 
-const messages = {};
+const messages: any = {};
 
 messages[operations.PLUS] = [
   {

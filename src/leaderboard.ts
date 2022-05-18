@@ -20,7 +20,7 @@ const querystring = require('querystring');
  * @param {string} channelId  ChannelId to get score for.
  * @returns {string} The leaderboard URL, which will be picked up in ../index.js when called.
  */
-const getLeaderboardUrl = (request: { headers: { host: any; }; }, channelId: any) => {
+const getLeaderboardUrl = (request: { headers: { host: string; }; }, channelId: string) => {
 
   const hostname = request.headers.host;
 
@@ -33,7 +33,7 @@ const getLeaderboardUrl = (request: { headers: { host: any; }; }, channelId: any
 
 }; // GetLeaderboardUrl.
 
-const getLeaderboardWeb = (request: any, channelId: any) => {
+const getLeaderboardWeb = (request: {}, channelId: string) => {
 
   const params = {
     channel: channelId
@@ -64,7 +64,7 @@ const getLeaderboardWeb = (request: any, channelId: any) => {
  *                  format is 'slack') or objects containing 'rank', 'item' and 'score' values (if
  *                  format is 'object').
  */
-const rankItems = async (topScores: any, itemType = 'users', format = 'slack') => {
+const rankItems = async (topScores: { item: string, score: number }[], itemType = 'users', format = 'slack') => {
 
   let lastScore, lastRank, output;
   const items = [];
@@ -129,7 +129,7 @@ const rankItems = async (topScores: any, itemType = 'users', format = 'slack') =
 
 }; // RankItems.
 
-const userScores = async (topScores: any) => {
+const userScores = async (topScores: { item: string, from_user_id: string, score: number, channel_id: string }[]) => {
 
   const items = [];
   let output;
@@ -175,7 +175,7 @@ const userScores = async (topScores: any) => {
  * @param {object} request The Express request object that resulted in this handler being run.
  * @returns {Promise} A Promise to send the Slack message.
  */
-const getForSlack = async (event: { channel: string; user: any; }, request: any) => {
+const getForSlack = async (event: { channel: string; user: string; }, request: object) => {
 
   try {
     const limit = 5;
@@ -248,7 +248,7 @@ const getForSlack = async (event: { channel: string; user: any; }, request: any)
  * @param {object} request The Express request object that resulted in this handler being run.
  * @returns {string} HTML for the browser.
  */
-const getForWeb = async (request: { query: { startDate: any; endDate: any; channel: any; }; }) => {
+const getForWeb = async (request: { query: { startDate: Date; endDate: Date; channel: string; }; }) => {
 
   try {
 
@@ -274,7 +274,7 @@ const getForWeb = async (request: { query: { startDate: any; endDate: any; chann
  * @param {object} request The Express request object that resulted in this handler being run.
  * @returns {string} JSON for the browser.
  */
-const getForChannels = async (request: any) => {
+const getForChannels = async (request: {}) => {
 
   try {
     const channels = await points.getAllChannels();
@@ -293,7 +293,7 @@ const getForChannels = async (request: any) => {
  * @param {object} request The Express request object that resulted in this handler being run.
  * @returns {string} JSON for the browser.
  */
-const getAllScoresFromUser = async (request: { query: { startDate: any; endDate: any; channel: any; }; }) => {
+const getAllScoresFromUser = async (request: { query: { startDate: Date; endDate: Date; channel: string; }; }) => {
 
   try {
     const startDate = request.query.startDate;
@@ -323,7 +323,7 @@ const getAllScoresFromUser = async (request: { query: { startDate: any; endDate:
  * @param {object} request The Express request object that resulted in this handler being run.
  * @returns {string} JSON for the browser.
  */
-const getKarmaFeed = async (request: { query: { itemsPerPage: any; page: any; searchString: any; startDate: any; endDate: any; channel: any; }; }) => {
+const getKarmaFeed = async (request: { query: { itemsPerPage: number; page: number; searchString: string; startDate: Date; endDate: Date; channel: string; }; }) => {
 
   try {
 
@@ -346,7 +346,7 @@ const getKarmaFeed = async (request: { query: { itemsPerPage: any; page: any; se
 
 
 
-const getUserProfile = async (request: { query: { username: any; fromTo: any; channelProfile: any; itemsPerPage: any; page: any; searchString: any; }; }) => {
+const getUserProfile = async (request: { query: { username: string; fromTo: string; channelProfile: string; itemsPerPage: number; page: number; searchString: string; }; }) => {
 
   try {
     const username = request.query.username;
@@ -377,17 +377,17 @@ const getUserProfile = async (request: { query: { username: any; fromTo: any; ch
 
 
     // Count Karma Points from users
-    let count: any[] = [];
-    karmaScore.feed.map((u: { fromUser: any; }) => u.fromUser).forEach((fromUser: string | number) => { count[fromUser] = (count[fromUser] || 0) + 1 });
+    let count: (string | number)[] = [];
+    karmaScore.feed.map((u: { fromUser: string; }) => u.fromUser).forEach((fromUser: number) => { count[fromUser] = (count[fromUser] || 0) + 1 });
     let karmaDivided = Object.entries(count).map(([key, value]) => ({ name: key, value })); //: Math.round((value/karmaScore.count) * 100), count: value 
 
     // Count All Received Karma Points by Days
-    let countIn: any[] = [];
+    let countIn: (string | number)[] = [];
     activityChartIn.feed.map((d: { timestamp: { toISOString: () => string; }; }) => d.timestamp.toISOString().split('T')[0]).forEach((fromUser: string | number) => { countIn[fromUser] = (countIn[fromUser] || 0) + 1 });
     let chartDatesIn = Object.entries(countIn).map(([key, value]) => ({ date: key, received: value, sent: 0 }));
 
     // Count All Sent Karma Points by Days
-    let countOut: any[] = [];
+    let countOut: (string | number)[] = [];
     activityChartOut.feed.map((d: { timestamp: { toISOString: () => string; }; }) => d.timestamp.toISOString().split('T')[0]).forEach((fromUser: string | number) => { countOut[fromUser] = (countOut[fromUser] || 0) + 1 });
     let chartDatesOut = Object.entries(countOut).map(([key, value]) => ({ date: key, received: 0, sent: value }));
 

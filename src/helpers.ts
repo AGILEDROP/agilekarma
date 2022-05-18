@@ -12,7 +12,7 @@ const fs = require('fs'),
   crypto = require('crypto'),
   handlebars = require('handlebars');
 
-const templates = {};
+const templates: { header?: string, footer?: string } = {};
 
 /* eslint-disable no-process-env */
 const envSecret1 = process.env.SLACK_VERIFICATION_TOKEN,
@@ -33,7 +33,7 @@ const ONE_DAY = 60 * 60 * 24, // eslint-disable-line no-magic-numbers
  * @param {array}  commands The commands to look for.
  * @return {string|Boolean} Either the first command found, or false if no commands were found.
  */
-const extractCommand = (message: string | any[], commands: any) => {
+const extractCommand = (message: string, commands: []) => {
 
   let firstLocation = Number.MAX_SAFE_INTEGER,
     firstCommand;
@@ -143,7 +143,7 @@ const isPlural = (number: number) => {
  * @param {integer} ts    The timestamp the token was supplied with.
  * @returns {boolean} Whether or not the token is valid.
  */
-const isTimeBasedTokenStillValid = (token: string, ts: number) => {
+const isTimeBasedTokenStillValid = (token: string, ts: any) => {
   const now = getTimestamp();
 
   // Don't support tokens too far from the past.
@@ -206,7 +206,7 @@ const maybeLinkItem = (item: string) => {
  * @returns {string} HTML ready to be rendered in the browser.
  * @see https://handlebarsjs.com/
  */
-const render = async (templatePath: string, context = {}, request = {}) => {
+const render = async (templatePath: string, context = {}, request: { query?: { botUser: string } } = {}) => {
 
   // Retrieve the header and footer HTML, if we don't already have it in memory.
   if (!templates.header) templates.header = fs.readFileSync('src/html/header.html', 'utf8');
