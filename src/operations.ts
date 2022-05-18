@@ -17,7 +17,7 @@ const operations = {
  * @return {string} The name of the operation.
  */
 const getOperationName = (operation: string): string => {
-  let operationName = '';
+  let operationName: string | boolean = '';
 
   /* eslint-disable max-statements-per-line */
   switch (operation) {

@@ -143,7 +143,7 @@ const isPlural = (number: number) => {
  * @param {integer} ts    The timestamp the token was supplied with.
  * @returns {boolean} Whether or not the token is valid.
  */
-const isTimeBasedTokenStillValid = (token: any, ts: string | number) => {
+const isTimeBasedTokenStillValid = (token: string, ts: number) => {
   const now = getTimestamp();
 
   // Don't support tokens too far from the past.
@@ -232,6 +232,8 @@ const render = async (templatePath: string, context = {}, request = {}) => {
   return handlebars.compile(output)(Object.assign(defaults, context));
 
 }; // Render.
+
+export { };
 
 module.exports = {
   extractCommand,

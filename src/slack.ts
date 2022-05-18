@@ -21,7 +21,7 @@ let slack, users;
  *                           https://github.com/slackapi/node-slack-sdk/blob/master/src/WebClient.ts
  * @returns {void}
  */
-const setSlackClient = (client) => {
+const setSlackClient = (client: string) => {
   slack = client;
 };
 
@@ -61,7 +61,7 @@ const getUserList = async () => {
  * @param {bool}   username Whether the username should always be returned instead of the real name.
  * @returns {string} The user's real name, as per their Slack profile.
  */
-const getUserName = async (userId, username = false) => {
+const getUserName = async (userId: string, username = false) => {
 
   const users = await getUserList();
   let user = users[userId];
@@ -71,7 +71,7 @@ const getUserName = async (userId, username = false) => {
     //Get new list from slack and match the id
     const userList = await slack.users.list();
 
-    user = userList.members.find(user => user.id == userId);
+    user = userList.members.find((user: { id: string; }) => user.id == userId);
   }
 
   //If still not found return unknown
@@ -93,7 +93,7 @@ const getUserName = async (userId, username = false) => {
  *                                be provided as part of the payload in the previous argument.
  * @return {Promise} A Promise to send the message to Slack.
  */
-const sendMessage = (text, channel) => {
+const sendMessage = (text: string, channel: string) => {
 
   let payload = {
     channel,
@@ -131,7 +131,7 @@ const sendMessage = (text, channel) => {
  * @param {string}        user    UserId to sent the message to.
  * @return {Promise} A Promise to send the message to Slack.
  */
-const sendEphemeral = (text, channel, user) => {
+const sendEphemeral = (text: string, channel: string, user: string) => {
 
   let payload = {
     channel,
@@ -169,7 +169,7 @@ const sendEphemeral = (text, channel, user) => {
  * @returns {boolean}
  *   Returns T|F.
  */
-function channelFilter(channelData) {
+function channelFilter(channelData: { id: string }) {
   return this === channelData.id;
 }
 
@@ -182,7 +182,7 @@ function channelFilter(channelData) {
  * @returns {Promise}
  *   Returned promise./
  */
-const getChannelName = async (channelId) => {
+const getChannelName = async (channelId: string) => {
   const channelList = await slack.conversations.list({
     // eslint-disable-next-line camelcase
     exclude_archived: true,

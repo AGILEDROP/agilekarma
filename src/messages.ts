@@ -144,6 +144,8 @@ const getRandomMessage = (operation: string, item: any, score = 0) => {
 
 }; // GetRandomMessage.
 
+export { };
+
 module.exports = {
   messages,
   getRandomMessage

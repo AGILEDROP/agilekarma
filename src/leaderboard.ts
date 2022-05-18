@@ -92,7 +92,7 @@ const rankItems = async (topScores: any, itemType = 'users', format = 'slack') =
 
     // Determine the rank by keeping it the same as the last user if the score is the same, or
     // otherwise setting it to the same as the item count (and adding 1 to deal with 0-base count).
-    const rank = score.score === lastScore ? lastRank : items.length + 1;
+    const rank: number = score.score === lastScore ? lastRank : items.length + 1;
 
     switch (format) {
       case 'slack':
@@ -432,6 +432,8 @@ const getUserProfile = async (request: { query: { username: any; fromTo: any; ch
 const handler = async (event: any, request: any) => {
   return getForSlack(event, request);
 };
+
+export { };
 
 module.exports = {
   getLeaderboardUrl,

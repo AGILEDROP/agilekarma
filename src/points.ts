@@ -12,6 +12,8 @@
 
 'use strict';
 
+import { Points } from "./interface/interface";
+
 const mysql = require('mysql');
 const uuid = require('uuid');
 const slack = require('./slack');
@@ -33,9 +35,11 @@ const mysqlConfig = {
   database: process.env.DATABASE_NAME
 };
 
-const dbErrorHandler = err => err && console.log(err);
+const dbErrorHandler = (err: any) => err && console.log(err);
 const votingLimit = process.env.USER_LIMIT_VOTING_MAX;
 const timeLimit = process.env.UNDO_TIME_LIMIT;
+
+
 
 /**
  * Retrieves all scores from the database, ordered from highest to lowest per channel.
@@ -49,9 +53,10 @@ const timeLimit = process.env.UNDO_TIME_LIMIT;
  * @return {array} An array of entries, each an object containing 'item' (string) and 'score'
  *                (integer) properties.
  */
-const retrieveTopScores = async (startDate, endDate, channelId) => {
+
+const retrieveTopScores: Points = async (startDate, endDate, channelId) => {
   let scores = '';
-  await getAllScores(startDate, endDate, channelId).then(function (result) {
+  await getAllScores(startDate, endDate, channelId).then(function (result: string) {
     scores = result;
   });
   return scores;
@@ -77,7 +82,7 @@ const retrieveTopScores = async (startDate, endDate, channelId) => {
  * @param {string} description
  *   Optional description. To be implemented.
  */
-const updateScore = async (toUserId, fromUserId, channelId, description) => {
+const updateScore: Points = async (toUserId, fromUserId, channelId, description) => {
 
   // Connect to the DB, and create a table if it's not yet there.
   await insertScore(toUserId, fromUserId, channelId, description);
@@ -105,7 +110,7 @@ const updateScore = async (toUserId, fromUserId, channelId, description) => {
  * @returns {Promise<string|*>}
  *   Returned promise.
  */
-const undoScore = async (fromUserId, toUserId, channelId) => {
+const undoScore: Points = async (fromUserId, toUserId, channelId) => {
   let last;
   await getLast(fromUserId, channelId).then(
     function (result) {
@@ -148,7 +153,7 @@ const undoScore = async (fromUserId, toUserId, channelId) => {
  * @returns {Promise}
  *   Returned promise.
  */
-const getNewScore = async (toUserId, channelId) => {
+const getNewScore: Points = async (toUserId, channelId) => {
   let finalResult = '';
   await getUserScore(toUserId, channelId).then(function (result) {
     finalResult = result[0].score;
@@ -168,7 +173,7 @@ const getNewScore = async (toUserId, channelId) => {
  * @returns {Promise}
  *   Returned promise.
  */
-const checkUser = async (userId) => {
+const checkUser = async (userId: string) => {
   let user = '';
   const userName = await slack.getUserName(userId);
   await getUser(userId).then(function (result) {
@@ -197,7 +202,7 @@ const checkUser = async (userId) => {
  * @returns {Promise}
  *   Returned promise.
  */
-const checkChannel = async (channelId) => {
+const checkChannel = async (channelId: string) => {
   let channel = '';
   const channelName = await slack.getChannelName(channelId);
   await getChannel(channelId).then(function (result) {
@@ -226,13 +231,13 @@ const checkChannel = async (channelId) => {
  * @returns {Promise}
  *   The promise.
  */
-function getUserScore(item, channelId) {
+function getUserScore(item: string, channelId: string) {
   return new Promise(function (resolve, reject) {
     const db = mysql.createConnection(mysqlConfig);
     const inserts = ['score', scoresTableName, item, channelId];
     const str = 'SELECT COUNT(score_id) as ?? FROM ?? WHERE to_user_id = ? AND `channel_id` = ?';
     const query = mysql.format(str, inserts);
-    db.query(query, [scoresTableName, item], function (err, result) {
+    db.query(query, [scoresTableName, item], function (err: any, result: unknown) {
       if (err) {
         reject(err);
       } else {
@@ -253,7 +258,7 @@ function getUserScore(item, channelId) {
  * @returns {Promise}
  *   The promise.
  */
-function getAllScores(startDate, endDate, channelId) {
+function getAllScores(startDate: Date, endDate: Date, channelId: string) {
   return new Promise(function (resolve, reject) {
     const db = mysql.createConnection(mysqlConfig);
     let str = '';
@@ -264,7 +269,7 @@ function getAllScores(startDate, endDate, channelId) {
     let channels = channelId.split(',');
 
     let where_str = 'WHERE (';
-    where_str += channels.map(x => { return "`channel_id` = '" + x + "'" }).join(" OR ");
+    where_str += channels.map((x: string) => { return "`channel_id` = '" + x + "'" }).join(" OR ");
     where_str += ')';
 
     if ('undefined' !== typeof startDate || 'undefined' !== typeof endDate) {
@@ -290,7 +295,7 @@ function getAllScores(startDate, endDate, channelId) {
     }
 
     const query = mysql.format(str, inserts);
-    db.query(query, function (err, result) {
+    db.query(query, function (err: any, result: unknown) {
       if (err) {
         console.log(db.sql);
         reject(err);
@@ -312,7 +317,7 @@ function getAllScores(startDate, endDate, channelId) {
  * @returns {Promise}
  *   The promise.
  */
-function getAllScoresFromUser(startDate, endDate, channelId) {
+function getAllScoresFromUser(startDate: string, endDate: Date, channelId: string) {
   return new Promise(function (resolve, reject) {
     const db = mysql.createConnection(mysqlConfig);
     let str = '';
@@ -333,7 +338,7 @@ function getAllScoresFromUser(startDate, endDate, channelId) {
     str = 'SELECT to_user_id as item, ANY_VALUE(from_user_id) as from_user_id, channel_id, COUNT(score_id) as score FROM `score` WHERE `channel_id` = ? AND (`timestamp` > ? AND `timestamp` < ?) GROUP BY to_user_id ORDER BY score DESC';
 
     const query = mysql.format(str, inserts);
-    db.query(query, function (err, result) {
+    db.query(query, function (err: any, result: unknown) {
       if (err) {
         console.log(db.sql);
         reject(err);
@@ -353,7 +358,7 @@ function getAllScoresFromUser(startDate, endDate, channelId) {
  * @returns {Promise}
  *   The promise.
  */
-const getKarmaFeed = (itemsPerPage, page, searchString, channelId, startDate, endDate) => {
+const getKarmaFeed = (itemsPerPage: string | number, page: number, searchString: string, channelId: string, startDate: Date, endDate: Date) => {
   return new Promise(function (resolve, reject) {
     const db = mysql.createConnection(mysqlConfig);
 
@@ -365,7 +370,7 @@ const getKarmaFeed = (itemsPerPage, page, searchString, channelId, startDate, en
     let channels = channelId.split(',');
 
     let where_str = 'WHERE (';
-    where_str += channels.map(x => { return "channel.channel_id = '" + x + "'" }).join(" OR ");
+    where_str += channels.map((x: string) => { return "channel.channel_id = '" + x + "'" }).join(" OR ");
     where_str += ')';
 
     if ('undefined' !== typeof startDate || 'undefined' !== typeof endDate) {
@@ -408,14 +413,14 @@ const getKarmaFeed = (itemsPerPage, page, searchString, channelId, startDate, en
     const query = mysql.format(str);
     const queryCount = mysql.format(countScores);
 
-    const queryResult = db.query(query, function (err, result) {
+    const queryResult = db.query(query, function (err: any, result: any) {
 
       if (err) {
         console.log(db.sql);
         reject(err);
       }
 
-      db.query(queryCount, function (errCount, resultCount) {
+      db.query(queryCount, function (errCount: any, resultCount: { scores: any; }[]) {
 
         if (errCount) {
           console.log(db.sql);
@@ -442,7 +447,7 @@ const getKarmaFeed = (itemsPerPage, page, searchString, channelId, startDate, en
  * @returns {Promise<{message: string, operation: boolean}|{message: null, operation: boolean}>}
  *   Returns promise with message and operation.
  */
-const getDailyUserScore = async (fromUserId) => {
+const getDailyUserScore = async (fromUserId: string) => {
   const limit = votingLimit;
   let scoreCount;
   await getDayilyVotesByUser(fromUserId).then(function (result) {
@@ -480,7 +485,7 @@ const getDailyUserScore = async (fromUserId) => {
  * @returns {Promise}
  *   The promise.
  */
-function insertScore(toUserId, fromUserId, channelId, description = null) {
+function insertScore(toUserId: Date, fromUserId: Date, channelId: string, description: undefined = null) {
 
   return new Promise(function (resolve, reject) {
     const db = mysql.createConnection(mysqlConfig);
@@ -489,7 +494,7 @@ function insertScore(toUserId, fromUserId, channelId, description = null) {
     const inserts = ['score', 'timestamp', uuid.v4(), ts, toUserId, fromUserId, channelId, description];
     const str = 'INSERT INTO ?? (score_id, ??, to_user_id, from_user_id, channel_id, description) VALUES (?,?,?,?,?,?);';
     const query = mysql.format(str, inserts);
-    db.query(query, function (err, result) {
+    db.query(query, function (err: any, result: unknown) {
       if (err) {
         console.log(db.sql);
         reject(err);
@@ -511,13 +516,13 @@ function insertScore(toUserId, fromUserId, channelId, description = null) {
  * @returns {Promise}
  *  Returned promise.
  */
-function getUser(userId) {
+function getUser(userId: string) {
   return new Promise(function (resolve, reject) {
     const db = mysql.createConnection(mysqlConfig);
     const str = 'SELECT user_id FROM ?? WHERE user_id = ?';
     const inserts = ['user', userId];
     const query = mysql.format(str, inserts);
-    db.query(query, function (err, result) {
+    db.query(query, function (err: any, result: unknown) {
       if (err) {
         console.log(db.sql);
         reject(err);
@@ -539,13 +544,13 @@ function getUser(userId) {
  * @returns {Promise}
  *  Returned promise.
  */
-function getName(username) {
+function getName(username: string) {
   return new Promise(function (resolve, reject) {
     const db = mysql.createConnection(mysqlConfig);
     const str = 'SELECT user_name FROM ?? WHERE user_username = ?';
     const inserts = ['user', username];
     const query = mysql.format(str, inserts);
-    db.query(query, function (err, result) {
+    db.query(query, function (err: any, result: { user_name: unknown; }[]) {
       if (err) {
         console.log(db.sql);
         reject(err);
@@ -567,13 +572,13 @@ function getName(username) {
  * @returns {Promise}
  *  Returned promise.
  */
-function getUserId(username) {
+function getUserId(username: string) {
   return new Promise(function (resolve, reject) {
     const db = mysql.createConnection(mysqlConfig);
     const str = 'SELECT user_id FROM ?? WHERE user_username = ?';
     const inserts = ['user', username];
     const query = mysql.format(str, inserts);
-    db.query(query, function (err, result) {
+    db.query(query, function (err: any, result: { user_id: unknown; }[]) {
       if (err) {
         console.log(db.sql);
         reject(err);
@@ -587,7 +592,7 @@ function getUserId(username) {
   });
 }
 
-const getAll = async (username, fromTo, channel, itemsPerPage, page, searchString) => {
+const getAll = async (username: string, fromTo: string, channel: string, itemsPerPage: string | number, page: number, searchString: string) => {
 
   const userId = await getUserId(username);
 
@@ -651,14 +656,14 @@ const getAll = async (username, fromTo, channel, itemsPerPage, page, searchStrin
     const query = mysql.format(str);
     const queryCount = mysql.format(countScores);
 
-    const queryResult = db.query(query, function (err, result) {
+    const queryResult = db.query(query, function (err: any, result: any) {
 
       if (err) {
         console.log(db.sql);
         reject(err);
       }
 
-      db.query(queryCount, function (errCount, resultCount) {
+      db.query(queryCount, function (errCount: any, resultCount: { scores: any; }[]) {
 
         if (errCount) {
           console.log(db.sql);
@@ -684,14 +689,14 @@ const getAll = async (username, fromTo, channel, itemsPerPage, page, searchStrin
  * @returns {Promise}
  *   Returned promise.
  */
-function insertUser(userId, userName) {
+function insertUser(userId: string, userName: string) {
   return new Promise(function (resolve, reject) {
     const db = mysql.createConnection(mysqlConfig);
     const lowcaseUserName = userName.split(" ").join("").toLocaleLowerCase();
     const str = 'INSERT INTO ?? (user_id, user_name, user_username, banned_until) VALUES (?, ?, ?, NULL);';
     const inserts = ['user', userId, userName, lowcaseUserName];
     const query = mysql.format(str, inserts);
-    db.query(query, function (err, result) {
+    db.query(query, function (err: any, result: unknown) {
       if (err) {
         console.log(db.sql);
         reject(err);
@@ -713,13 +718,13 @@ function insertUser(userId, userName) {
  * @returns {Promise}
  *   Returned promise.
  */
-function getChannel(channelId) {
+function getChannel(channelId: string) {
   return new Promise(function (resolve, reject) {
     const db = mysql.createConnection(mysqlConfig);
     const str = 'SELECT channel_id FROM ?? WHERE channel_id = ?;';
     const inserts = ['channel', channelId];
     const query = mysql.format(str, inserts);
-    db.query(query, function (err, result) {
+    db.query(query, function (err: any, result: unknown) {
       if (err) {
         console.log(db.sql);
         reject(err);
@@ -743,13 +748,13 @@ function getChannel(channelId) {
  * @returns {Promise}
  *   Returned promise.
  */
-function insertChannel(channelId, channelName) {
+function insertChannel(channelId: string, channelName: string) {
   return new Promise(function (resolve, reject) {
     const db = mysql.createConnection(mysqlConfig);
     const str = 'INSERT INTO ?? (channel_id, channel_name) VALUES (?, ?);';
     const inserts = ['channel', channelId, channelName];
     const query = mysql.format(str, inserts);
-    db.query(query, function (err, result) {
+    db.query(query, function (err: any, result: unknown) {
       if (err) {
         console.log(db.sql);
         reject(err);
@@ -773,14 +778,14 @@ function insertChannel(channelId, channelName) {
  * @returns {Promise}
  *   Returned promise.
  */
-function getLast(fromUserId, channelId) {
+function getLast(fromUserId: Date, channelId: string) {
   return new Promise(function (resolve, reject) {
     const db = mysql.createConnection(mysqlConfig);
     const timestamp = moment(Date.now()).subtract(timeLimit, 'seconds').format('YYYY-MM-DD HH:mm:ss');
     const str = 'SELECT `score_id`, `timestamp` FROM `score` WHERE `from_user_id` = ? AND `timestamp` >= ? AND `channel_id` = ? ORDER BY `timestamp` DESC LIMIT 1;';
     const inserts = [fromUserId, timestamp, channelId];
     const query = mysql.format(str, inserts);
-    db.query(query, function (err, result) {
+    db.query(query, function (err: any, result: unknown) {
       if (err) {
         console.log(db.sql);
         reject(err);
@@ -802,13 +807,13 @@ function getLast(fromUserId, channelId) {
  * @returns {Promise}
  *   The returned promise.
  */
-function removeLast(scoreId) {
+function removeLast(scoreId: never) {
   return new Promise(function (resolve, reject) {
     const db = mysql.createConnection(mysqlConfig);
     const str = 'DELETE FROM `score` WHERE `score_id` = ?;';
     const inserts = [scoreId];
     const query = mysql.format(str, inserts);
-    db.query(query, function (err, result) {
+    db.query(query, function (err: any, result: unknown) {
       if (err) {
         console.log(db.sql);
         reject(err);
@@ -830,7 +835,7 @@ function removeLast(scoreId) {
  * @returns {Promise}
  *   Returned promise.
  */
-function getDayilyVotesByUser(fromUserId) {
+function getDayilyVotesByUser(fromUserId: string) {
 
   return new Promise(function (resolve, reject) {
     const date = moment(Date.now()).format('YYYY-MM-DD');
@@ -838,7 +843,7 @@ function getDayilyVotesByUser(fromUserId) {
     const str = 'SELECT COUNT(score_id) as daily_votes from score where DATE(`timestamp`) = ? AND from_user_id = ?;';
     const inserts = [date, fromUserId];
     const query = mysql.format(str, inserts);
-    db.query(query, function (err, result) {
+    db.query(query, function (err: any, result: unknown) {
       if (err) {
         console.log(db.sql);
         reject(err);
@@ -864,7 +869,7 @@ const getAllChannels = () => {
     let str = 'SELECT * FROM channel';
 
     const query = mysql.format(str);
-    db.query(query, function (err, result) {
+    db.query(query, function (err: any, result: unknown) {
       if (err) {
         console.log(db.sql);
         reject(err);
