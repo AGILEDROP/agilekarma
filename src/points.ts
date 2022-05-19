@@ -523,6 +523,7 @@ function getUser(userId: string) {
     const inserts = ['user', userId];
     const query = mysql.format(str, inserts);
     db.query(query, function (err: any, result: unknown) {
+      console.log(result)
       if (err) {
         console.log(db.sql);
         reject(err);

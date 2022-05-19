@@ -35,7 +35,7 @@ const handleSelfPlus = (user: string, channel: object) => {
   return slack.sendEphemeral(message, channel, user);
 };
 
-const usersList: { voter: string; user: string; }[] = [];
+const usersList: string[] = [];
 
 /**
  *
