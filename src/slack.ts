@@ -21,7 +21,7 @@ let slack, users;
  *                           https://github.com/slackapi/node-slack-sdk/blob/master/src/WebClient.ts
  * @returns {void}
  */
-const setSlackClient = (client: string) => {
+export const setSlackClient = (client: string) => {
   slack = client;
 };
 
@@ -30,7 +30,7 @@ const setSlackClient = (client: string) => {
  *
  * @returns {object} A collection of Slack user objects, indexed by the user IDs (Uxxxxxxxx).
  */
-const getUserList = async () => {
+export const getUserList = async () => {
 
   if (users) {
     return users;
@@ -61,7 +61,7 @@ const getUserList = async () => {
  * @param {bool}   username Whether the username should always be returned instead of the real name.
  * @returns {string} The user's real name, as per their Slack profile.
  */
-const getUserName = async (userId: string, username = false) => {
+export const getUserName = async (userId: string, username = false) => {
 
   const users = await getUserList();
   let user = users[userId];
@@ -93,7 +93,7 @@ const getUserName = async (userId: string, username = false) => {
  *                                be provided as part of the payload in the previous argument.
  * @return {Promise} A Promise to send the message to Slack.
  */
-const sendMessage = (text: string, channel: string) => {
+export const sendMessage = (text: string, channel: string) => {
 
   let payload = {
     channel,
@@ -131,7 +131,7 @@ const sendMessage = (text: string, channel: string) => {
  * @param {string}        user    UserId to sent the message to.
  * @return {Promise} A Promise to send the message to Slack.
  */
-const sendEphemeral = (text: string, channel: string, user: string) => {
+export const sendEphemeral = (text: string, channel: string, user: string) => {
 
   let payload = {
     channel,
@@ -182,7 +182,7 @@ function channelFilter(channelData: { id: string }) {
  * @returns {Promise}
  *   Returned promise./
  */
-const getChannelName = async (channelId: string) => {
+export const getChannelName = async (channelId: string) => {
   const channelList = await slack.conversations.list({
     // eslint-disable-next-line camelcase
     exclude_archived: true,
@@ -201,11 +201,3 @@ const getChannelName = async (channelId: string) => {
 
 export { };
 
-module.exports = {
-  setSlackClient,
-  getUserList,
-  getUserName,
-  sendMessage,
-  getChannelName,
-  sendEphemeral
-};

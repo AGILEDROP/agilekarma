@@ -54,7 +54,7 @@ const timeLimit = process.env.UNDO_TIME_LIMIT;
  *                (integer) properties.
  */
 
-const retrieveTopScores: Points = async (startDate, endDate, channelId) => {
+export const retrieveTopScores: Points = async (startDate, endDate, channelId) => {
   let scores = '';
   await getAllScores(startDate, endDate, channelId).then(function (result: string) {
     scores = result;
@@ -82,7 +82,7 @@ const retrieveTopScores: Points = async (startDate, endDate, channelId) => {
  * @param {string} description
  *   Optional description. To be implemented.
  */
-const updateScore: Points = async (toUserId, fromUserId, channelId, description) => {
+export const updateScore: Points = async (toUserId, fromUserId, channelId, description) => {
 
   // Connect to the DB, and create a table if it's not yet there.
   await insertScore(toUserId, fromUserId, channelId, description);
@@ -153,7 +153,7 @@ const undoScore: Points = async (fromUserId, toUserId, channelId) => {
  * @returns {Promise}
  *   Returned promise.
  */
-const getNewScore: Points = async (toUserId, channelId) => {
+export const getNewScore: Points = async (toUserId, channelId) => {
   let finalResult = '';
   await getUserScore(toUserId, channelId).then(function (result) {
     finalResult = result[0].score;
@@ -165,16 +165,9 @@ const getNewScore: Points = async (toUserId, channelId) => {
   return finalResult;
 };
 
-/**
- * Checks if user exists in the db.
- *
- * @param {string} userId
- *   Slack userid.
- * @returns {Promise}
- *   Returned promise.
- */
-const checkUser = async (userId: string) => {
-  let user = '';
+
+export const checkUser = async (userId: string): Promise<string> => {
+  let user;
   const userName = await slack.getUserName(userId);
   await getUser(userId).then(function (result) {
     user = result[0];
@@ -202,7 +195,7 @@ const checkUser = async (userId: string) => {
  * @returns {Promise}
  *   Returned promise.
  */
-const checkChannel = async (channelId: string) => {
+export const checkChannel = async (channelId: string) => {
   let channel = '';
   const channelName = await slack.getChannelName(channelId);
   await getChannel(channelId).then(function (result) {
@@ -317,7 +310,7 @@ function getAllScores(startDate: Date, endDate: Date, channelId: string) {
  * @returns {Promise}
  *   The promise.
  */
-function getAllScoresFromUser(startDate: string, endDate: Date, channelId: string) {
+export function getAllScoresFromUser(startDate: string, endDate: Date, channelId: string) {
   return new Promise(function (resolve, reject) {
     const db = mysql.createConnection(mysqlConfig);
     let str = '';
@@ -358,7 +351,7 @@ function getAllScoresFromUser(startDate: string, endDate: Date, channelId: strin
  * @returns {Promise}
  *   The promise.
  */
-const getKarmaFeed = (itemsPerPage: string | number, page: number, searchString: string, channelId: string, startDate: Date, endDate: Date) => {
+export const getKarmaFeed = (itemsPerPage: string | number, page: number, searchString: string, channelId: string, startDate: Date, endDate: Date) => {
   return new Promise(function (resolve, reject) {
     const db = mysql.createConnection(mysqlConfig);
 
@@ -447,7 +440,7 @@ const getKarmaFeed = (itemsPerPage: string | number, page: number, searchString:
  * @returns {Promise<{message: string, operation: boolean}|{message: null, operation: boolean}>}
  *   Returns promise with message and operation.
  */
-const getDailyUserScore = async (fromUserId: string) => {
+export const getDailyUserScore = async (fromUserId: string) => {
   const limit = votingLimit;
   let scoreCount;
   await getDayilyVotesByUser(fromUserId).then(function (result) {
@@ -516,13 +509,13 @@ function insertScore(toUserId: string, fromUserId: string, channelId: string, de
  * @returns {Promise}
  *  Returned promise.
  */
-function getUser(userId: string) {
+function getUser(userId: string): Promise<{ user_id: string }[]> {
   return new Promise(function (resolve, reject) {
     const db = mysql.createConnection(mysqlConfig);
     const str = 'SELECT user_id FROM ?? WHERE user_id = ?';
     const inserts = ['user', userId];
     const query = mysql.format(str, inserts);
-    db.query(query, function (err: any, result: unknown) {
+    db.query(query, function (err: any, result: { user_id: string }[]) {
       console.log(result)
       if (err) {
         console.log(db.sql);
@@ -545,7 +538,7 @@ function getUser(userId: string) {
  * @returns {Promise}
  *  Returned promise.
  */
-function getName(username: string) {
+export function getName(username: string) {
   return new Promise(function (resolve, reject) {
     const db = mysql.createConnection(mysqlConfig);
     const str = 'SELECT user_name FROM ?? WHERE user_username = ?';
@@ -573,7 +566,7 @@ function getName(username: string) {
  * @returns {Promise}
  *  Returned promise.
  */
-function getUserId(username: string) {
+export function getUserId(username: string) {
   return new Promise(function (resolve, reject) {
     const db = mysql.createConnection(mysqlConfig);
     const str = 'SELECT user_id FROM ?? WHERE user_username = ?';
@@ -593,7 +586,7 @@ function getUserId(username: string) {
   });
 }
 
-const getAll = async (username: string, fromTo: string, channel: string, itemsPerPage: string | number, page: number, searchString: string) => {
+export const getAll = async (username: string, fromTo: string, channel: string, itemsPerPage: string | number, page: number, searchString: string) => {
 
   const userId = await getUserId(username);
 
@@ -864,7 +857,7 @@ function getDayilyVotesByUser(fromUserId: string) {
  * @returns {Promise}
  *   The promise.
  */
-const getAllChannels = () => {
+export const getAllChannels = () => {
   return new Promise(function (resolve, reject) {
     const db = mysql.createConnection(mysqlConfig);
     let str = 'SELECT * FROM channel';
@@ -883,21 +876,3 @@ const getAllChannels = () => {
 
   });
 }
-
-export { };
-
-module.exports = {
-  retrieveTopScores,
-  updateScore,
-  checkUser,
-  checkChannel,
-  undoScore,
-  getNewScore,
-  getDailyUserScore,
-  getAllChannels,
-  getAllScoresFromUser,
-  getKarmaFeed,
-  getName,
-  getAll,
-  getUserId
-};

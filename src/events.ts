@@ -8,9 +8,9 @@
 'use strict';
 
 import { Events } from "./interface/interface";
+import { checkChannel, checkUser, updateScore } from "./points";
 
 const slack = require('./slack'),
-  points = require('./points'),
   helpers = require('./helpers'),
   messages = require('./messages'),
   operations = require('./operations'),
@@ -53,10 +53,10 @@ const usersList: string[] = [];
  * @return {Promise<string>} Returns random message.
  */
 const processUserData: Events = async (item, operation, channel, userVoting, description) => {
-  const dbUserTo = await points.checkUser(item);
-  const dbUserFrom = await points.checkUser(userVoting);
-  const checkChannel = await points.checkChannel(channel);
-  const score = await points.updateScore(dbUserTo, dbUserFrom, checkChannel, description),
+  const dbUserTo = await checkUser(item);
+  const dbUserFrom = await checkUser(userVoting);
+  const checkChannelled = await checkChannel(channel);
+  const score = await updateScore(dbUserTo, dbUserFrom, checkChannelled, description),
     operationName = operations.getOperationName(operation);
 
   const findVoter = usersList.find((user) => user.voter === userVoting);
