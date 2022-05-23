@@ -6,9 +6,7 @@
 
 import Express from 'express';
 import { handleEvent } from './events';
-import { getForChannels, getForWeb } from './leaderboard';
-
-const leaderboard = require('./leaderboard');
+import { getAllScoresFromUser, getForChannels, getForWeb, getKarmaFeed, getUserProfile } from './leaderboard';
 
 const { SLACK_VERIFICATION_TOKEN } = process.env;
 
@@ -55,10 +53,6 @@ export const validateToken = (suppliedToken: string, serverToken: string) => {
 /**
  * Handles GET requests to the app. At the moment this only really consists of an authenticated
  * view of the full leaderboard.
- *
- * @param {express.req} request An Express request. See https://expressjs.com/en/4x/api.html#req.
- * @param {express.res} response An Express response. See https://expressjs.com/en/4x/api.html#res.
- * @return {void}
  */
 export const handleGet = async (request: Express.Request, response: Express.Response) => {
   logRequest(request);
@@ -76,12 +70,12 @@ export const handleGet = async (request: Express.Request, response: Express.Resp
       break;
 
     case '/fromusers':
-      response.json(await leaderboard.getAllScoresFromUser(request));
+      response.json(await getAllScoresFromUser(request));
       break;
 
     case '/karmafeed':
       try {
-        response.json(await leaderboard.getKarmaFeed(request));
+        response.json(await getKarmaFeed(request));
       } catch (err) {
         console.log(err.message);
       }
@@ -89,7 +83,7 @@ export const handleGet = async (request: Express.Request, response: Express.Resp
 
     case '/userprofile':
       try {
-        response.json(await leaderboard.getUserProfile(request));
+        response.json(await getUserProfile(request));
       } catch (err) {
         console.log(err.message);
       }
@@ -104,11 +98,6 @@ export const handleGet = async (request: Express.Request, response: Express.Resp
 
 /**
  * Handles POST requests to the app.
- *
- * @param {express.req} request An Express request. See https://expressjs.com/en/4x/api.html#req.
- * @param {express.res} response An Express response. See https://expressjs.com/en/4x/api.html#res.
- * @return {bool|Promise} Either `false` if the event cannot be handled, or a Promise as returned
- *                        by `events.handleEvent()`.
  */
 export const handlePost = (request: Express.Request, response: Express.Response) => {
   logRequest(request);

@@ -1,16 +1,9 @@
-/**
- * Contains assorted helper functions.
- *
- * @author Tim Malone <tdmalone@gmail.com>
- */
-
 'use strict';
 
-const slack = require('./slack');
-
-const fs = require('fs'),
-  crypto = require('crypto'),
-  handlebars = require('handlebars');
+import Handlebars from "handlebars";
+import { getUserName } from "./slack";
+import crypto from "crypto"
+import fs from "fs"
 
 const templates: { header?: string, footer?: string } = {};
 
@@ -25,15 +18,10 @@ const ONE_DAY = 60 * 60 * 24, // eslint-disable-line no-magic-numbers
 
 /**
  * Given a message and a list of commands, extracts the first command mentioned in the message.
- *
  * TODO: May need to ensure that commands are whole words, so a smaller command doesn't get
  *       detected inside a larger one.
- *
- * @param {string} message  The message text to search.
- * @param {array}  commands The commands to look for.
- * @return {string|Boolean} Either the first command found, or false if no commands were found.
  */
-const extractCommand = (message: string, commands: []) => {
+export const extractCommand = (message: string, commands: []) => {
 
   let firstLocation = Number.MAX_SAFE_INTEGER,
     firstCommand;
@@ -52,28 +40,17 @@ const extractCommand = (message: string, commands: []) => {
 
 /**
  * Extracts a valid Slack user ID from a string of text.
- *
- * @param {string} text The string in question.
- * @returns {string} The first matched Slack user ID in the string, or an empty string if a match
- *                   could not be found.
- * @see ::isUser
  */
-const extractUserID = (text: string) => {
+export const extractUserID = (text: string) => {
   const match = text.match(/U[A-Z0-9]+/);
   return match ? match[0] : '';
 };
 
 /**
  * Gets the user or 'thing' that is being spoken about, and the 'operation' being done on it.
- * We take the operation down to one character, and also support — due to iOS' replacement of --.
- *
- * @param {string} text The message text sent through in the event.
- * @returns {object} An object containing both the 'item' being referred to - either a Slack user
- *                   ID (eg. 'U12345678') or the name of a 'thing' (eg. 'NameOfThing'); and the
- *                   'operation' being done on it - expressed as a valid mathematical operation
- *                   (i.e. + or -).
+ * We take the operation down to one character, and also support — due to iOS' replacement of --.(i.e. + or -).
  */
-const extractPlusMinusEventData = (text: string) => {
+export const extractPlusMinusEventData = (text: string) => {
   let usernameID;
   const data = text.match(/<@([A-Za-z0-9]+)>+\s*(\+{2}|-{2}|—{1}|undo)\s*(.+)?/);
   if (null !== data && 'undefined' !== typeof data[1] && null !== data[1]) {
@@ -100,11 +77,8 @@ const extractPlusMinusEventData = (text: string) => {
 
 /**
  * Generates a time-based token based on secrets from the environment.
- *
- * @param {string} ts A timestamp to hash into the token.
- * @returns {string} A token, that can be re-checked later using the same timestamp.
  */
-const getTimeBasedToken = (ts: string) => {
+export const getTimeBasedToken = (ts: string) => {
 
   if (!ts) {
     throw Error('Timestamp not provided when getting time-based token.');
@@ -118,32 +92,23 @@ const getTimeBasedToken = (ts: string) => {
 
 /**
  * Returns the current time as a standard Unix epoch timestamp.
- *
- * @returns {integer} The current Unix timestamp.
  */
-const getTimestamp = () => {
+export const getTimestamp = () => {
   return Math.floor(Date.now() / MILLISECONDS_TO_SECONDS);
 };
 
 /**
  * Determines whether or not a number should be referred to as a plural - eg. anything but 1 or -1.
- *
- * @param {integer} number The number in question.
- * @returns {Boolean} Whether or not the number is a plural.
  */
-const isPlural = (number: number) => {
+export const isPlural = (number: number) => {
   return 1 !== Math.abs(number);
 };
 
 /**
  * Validates a time-based token to ensure it is both still valid, and that it can be successfully
  * re-hashed using the expected secrets.
- *
- * @param {string}  token The token to validate.
- * @param {integer} ts    The timestamp the token was supplied with.
- * @returns {boolean} Whether or not the token is valid.
  */
-const isTimeBasedTokenStillValid = (token: string, ts: any) => {
+export const isTimeBasedTokenStillValid = (token: string, ts: any) => {
   const now = getTimestamp();
 
   // Don't support tokens too far from the past.
@@ -167,12 +132,8 @@ const isTimeBasedTokenStillValid = (token: string, ts: any) => {
 
 /**
  * Determines whether or not a string represents a Slack user ID - eg. U12345678.
- *
- * @param {string} item The string in question.
- * @returns {Boolean} Whether or not the string is a Slack user ID.
- * @see ::extractUserID()
  */
-const isUser = (item: string) => {
+export const isUser = (item: string) => {
   return item.match(/U[A-Z0-9]+/) ? true : false;
 };
 
@@ -184,29 +145,14 @@ const isUser = (item: string) => {
  * @return {string} The item linked with Slack mrkdwn
  * @see https://api.slack.com/docs/message-formatting#linking_to_channels_and_users
  */
-const maybeLinkItem = (item: string) => {
+export const maybeLinkItem = (item: string) => {
   return isUser(item) ? '<@' + item + '>' : item;
 };
 
 /**
  * Renders HTML for the browser, using Handlebars. Includes a standard header and footer.
- *
- * @param {string} templatePath Path to the Handlebars-compatible template file to render; that is,
- *                              a file containing valid HTML, with variable interpolations as
- *                              required. The path should be relative to the app's entry-point
- *                              (which is usually an index.js in the root of the repository).
- * @param {object} context      The Handlebars-compatible context to render; that is, an object with
- *                              values for the variables referenced in the template. Also include
- *                              standard variables referenced in the header and footer, such as
- *                              'title'. See the contents of ./html/ for more details. Some
- *                              variables may have defaults provided, which can be overridden.
- * @param {object} request      Optional. The Express request object that resulted in this
- *                              rendering job being run. Can be used to provide additional context
- *                              to the templates.
- * @returns {string} HTML ready to be rendered in the browser.
- * @see https://handlebarsjs.com/
  */
-const render = async (templatePath: string, context = {}, request: { query?: { botUser: string } } = {}) => {
+export const render = async (templatePath: string, context = {}, request: { query?: { botUser: string } } = {}) => {
 
   // Retrieve the header and footer HTML, if we don't already have it in memory.
   if (!templates.header) templates.header = fs.readFileSync('src/html/header.html', 'utf8');
@@ -218,32 +164,17 @@ const render = async (templatePath: string, context = {}, request: { query?: { b
     templates[templatePath] = fs.readFileSync(templatePath, 'utf8');
   }
 
-  /* eslint-disable camelcase */ // Handlebars templates commonly use snake_case instead.
   const defaults = {
     site_title: (
       request.query.botUser ?
-        await slack.getUserName(request.query.botUser) :
+        await getUserName(request.query.botUser) :
         'Working PlusPlus++'
     )
   };
-  /* eslint-enable camelcase */
 
   const output = templates.header + templates[templatePath] + templates.footer;
-  return handlebars.compile(output)(Object.assign(defaults, context));
+  return Handlebars.compile(output)(Object.assign(defaults, context));
 
 }; // Render.
 
 export { };
-
-module.exports = {
-  extractCommand,
-  extractPlusMinusEventData,
-  extractUserID,
-  getTimeBasedToken,
-  getTimestamp,
-  isPlural,
-  isTimeBasedTokenStillValid,
-  isUser,
-  maybeLinkItem,
-  render
-};

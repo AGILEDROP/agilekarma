@@ -1,24 +1,18 @@
 /**
  * Contains logic for returning the leaderboard.
- *
- * @author Tim Malone <tdmalone@gmail.com>
  */
 
 'use strict';
 
-const slack = require('./slack'),
-  points = require('./points'),
-  helpers = require('./helpers');
 
-const querystring = require('querystring');
+import querystring from 'querystring';
+import { isPlural, isUser, maybeLinkItem } from './helpers';
+import { getAllChannels, getName, getUserId, retrieveTopScores, getAll } from './points';
+import { getChannelName, getUserName, sendEphemeral } from './slack';
 
 /**
  * Gets the URL for the full leaderboard, including a token to ensure that it is only viewed by
  * someone who has access to this Slack team.
- *
- * @param {object} request The Express request object that resulted in this handler being run.
- * @param {string} channelId  ChannelId to get score for.
- * @returns {string} The leaderboard URL, which will be picked up in ../index.js when called.
  */
 export const getLeaderboardUrl = (request: { headers: { host: string; }; }, channelId: string) => {
 
@@ -27,7 +21,6 @@ export const getLeaderboardUrl = (request: { headers: { host: string; }; }, chan
   const params = {
     channel: channelId
   };
-  // eslint-disable-next-line no-process-env,no-negated-condition,yoda
   const protocol = process.env.SCOREBOT_USE_SSL !== '1' ? 'http://' : 'https://';
   return protocol + hostname + '/leaderboard?' + querystring.stringify(params);
 
@@ -38,7 +31,6 @@ const getLeaderboardWeb = (request: {}, channelId: string) => {
   const params = {
     channel: channelId
   };
-  // eslint-disable-next-line no-process-env,no-negated-condition,yoda
   const protocol = process.env.SCOREBOT_USE_SSL !== '1' ? 'http://' : 'https://';
   const frontendUrl = process.env.SCOREBOT_LEADERBOARD_URL;
   return protocol + frontendUrl + '?' + querystring.stringify(params);
@@ -51,18 +43,6 @@ const getLeaderboardWeb = (request: {}, channelId: string) => {
  *
  * For example, 2 users on 54 would draw 1st. The next user on 52 would be 3rd, and the final on 34
  * would be 4th.
- *
- * @param {array}  topScores An array of score objects, usually pre-retrieved by
- *                           points.retrieveTopScores(). These *must* be in 'top score' order (i.e.
- *                           descending order), otherwise ranking will not function correctly. Score
- *                           objects contain 'item' and 'score' properties.
- * @param {string} itemType  The type of item to rank. Accepts 'users' or 'things'. Only one type
- *                           can be ranked at a time.
- * @param {string} format    The format to return the results in. 'slack' returns or 'object'.
- *
- * @returns {array} An array, in rank order, of either of either human-readable Slack strings (if
- *                  format is 'slack') or objects containing 'rank', 'item' and 'score' values (if
- *                  format is 'object').
  */
 export const rankItems = async (topScores: { item: string, score: number }[], itemType = 'users', format = 'slack') => {
 
@@ -73,22 +53,22 @@ export const rankItems = async (topScores: { item: string, score: number }[], it
 
     let item = score.item;
 
-    const isUser = helpers.isUser(score.item) ? true : false;
+    const isUserConfirmed = isUser(score.item) ? true : false;
 
     // Skip if this item is not the item type we're ranking.
-    if (isUser && 'users' !== itemType || !isUser && 'users' === itemType) {
+    if (isUserConfirmed && 'users' !== itemType || !isUser && 'users' === itemType) {
       continue;
     }
 
     // For users, we need to link the item (for Slack) or get their real name (for other formats).
-    if (isUser) {
+    if (isUserConfirmed) {
       item = (
-        'slack' === format ? helpers.maybeLinkItem(item) : await slack.getUserName(item)
+        'slack' === format ? maybeLinkItem(item) : await getUserName(item)
       );
     }
 
     const itemTitleCase = item.substring(0, 1).toUpperCase() + item.substring(1),
-      plural = helpers.isPlural(score.score) ? 's' : '';
+      plural = isPlural(score.score) ? 's' : '';
 
     // Determine the rank by keeping it the same as the last user if the score is the same, or
     // otherwise setting it to the same as the item count (and adding 1 to deal with 0-base count).
@@ -103,7 +83,7 @@ export const rankItems = async (topScores: { item: string, score: number }[], it
 
         // If this is the first item, it's the winner!
         if (!items.length) {
-          output += ' ' + (isUser ? ':muscle:' : ':tada:');
+          output += ' ' + (isUserConfirmed ? ':muscle:' : ':tada:');
         }
 
         break;
@@ -141,12 +121,12 @@ export const userScores = async (topScores: { item: string, from_user_id: string
     let userScore = score.score;
     let channel = score.channel_id;
 
-    const isUser = helpers.isUser(toUser) ? true : false;
+    const isUserConfirmed = isUser(toUser) ? true : false;
 
-    if (isUser) {
-      toUser = await slack.getUserName(toUser);
-      fromUser = await slack.getUserName(fromUser);
-      channel = await slack.getChannelName(channel)
+    if (isUserConfirmed) {
+      toUser = await getUserName(toUser);
+      fromUser = await getUserName(fromUser);
+      channel = await getChannelName(channel)
     }
 
     output = {
@@ -168,26 +148,20 @@ export const userScores = async (topScores: { item: string, from_user_id: string
 /**
  * Retrieves and sends the current partial leaderboard (top scores only) to the requesting Slack
  * channel.
- *
- * @param {object} event   A hash of a validated Slack 'app_mention' event. See the docs at
- *                         https://api.slack.com/events-api#events_dispatched_as_json and
- *                         https://api.slack.com/events/app_mention for details.
- * @param {object} request The Express request object that resulted in this handler being run.
- * @returns {Promise} A Promise to send the Slack message.
  */
 export const getForSlack = async (event: { channel: string; user: string; }, request: object) => {
 
   try {
     const limit = 5;
 
-    const scores = await points.retrieveTopScores(event.channel),
+    const scores = await retrieveTopScores(event.channel),
       users = await rankItems(scores, 'users');
 
     // Things = await rankItems( scores, 'things' );
 
     const messageText = (
       'Here you go. Best people this month in channel <#' + event.channel + '|' +
-      await slack.getChannelName(event.channel) + '>.'
+      await getChannelName(event.channel) + '>.'
     );
 
     const bottomMessageText = (
@@ -235,7 +209,7 @@ export const getForSlack = async (event: { channel: string; user: string; }, req
     }
 
     console.log('Sending the leaderboard.');
-    return slack.sendEphemeral(message, event.channel, event.user);
+    return sendEphemeral(message, event.channel, event.user);
   } catch (err) {
     console.error(err.message);
   }
@@ -256,7 +230,7 @@ export const getForWeb = async (request: { query: { startDate: Date; endDate: Da
     const endDate = request.query.endDate;
     const channelId = request.query.channel;
 
-    const scores = await points.retrieveTopScores(startDate, endDate, channelId);
+    const scores = await retrieveTopScores(startDate, endDate, channelId);
     const users = await rankItems(scores, 'users', 'object');
 
     console.log(users);
@@ -270,14 +244,11 @@ export const getForWeb = async (request: { query: { startDate: Date; endDate: Da
 
 /**
  * Retrieves and returns all channels, for displaying on the web.
- *
- * @param {object} request The Express request object that resulted in this handler being run.
- * @returns {string} JSON for the browser.
  */
 export const getForChannels = async (request: {}) => {
 
   try {
-    const channels = await points.getAllChannels();
+    const channels = await getAllChannels();
 
     console.log('Sending all Channels!');
     return channels;
@@ -289,9 +260,6 @@ export const getForChannels = async (request: {}) => {
 
 /**
  * Retrieves all scores from_user_id, for displaying on the web.
- *
- * @param {object} request The Express request object that resulted in this handler being run.
- * @returns {string} JSON for the browser.
  */
 export const getAllScoresFromUser = async (request: { query: { startDate: Date; endDate: Date; channel: string; }; }) => {
 
@@ -300,7 +268,7 @@ export const getAllScoresFromUser = async (request: { query: { startDate: Date; 
     const endDate = request.query.endDate;
     const channelId = request.query.channel;
     // console.log(request.query);
-    const fromUsers = await points.getAllScoresFromUser(startDate, endDate, channelId);
+    const fromUsers = await getAllScoresFromUser(startDate, endDate, channelId);
     // console.log("FROMUSERS: " + JSON.stringify(fromUsers));
 
     const users = await userScores(fromUsers);
@@ -319,9 +287,6 @@ export const getAllScoresFromUser = async (request: { query: { startDate: Date; 
 
 /**
  * Retrieves all added karma with descriptions, for displaying on the web.
- *
- * @param {object} request The Express request object that resulted in this handler being run.
- * @returns {string} JSON for the browser.
  */
 export const getKarmaFeed = async (request: { query: { itemsPerPage: number; page: number; searchString: string; startDate: Date; endDate: Date; channel: string; }; }) => {
 
@@ -333,7 +298,7 @@ export const getKarmaFeed = async (request: { query: { itemsPerPage: number; pag
     const startDate = request.query.startDate;
     const endDate = request.query.endDate;
     const channelId = request.query.channel;
-    const feed = await points.getKarmaFeed(itemsPerPage, page, searchString, channelId, startDate, endDate);
+    const feed = await getKarmaFeed(itemsPerPage, page, searchString, channelId, startDate, endDate);
     console.log('Sending Karma Feed!');
 
     return feed;
@@ -357,9 +322,9 @@ export const getUserProfile = async (request: { query: { username: string; fromT
     const page = request.query.page;
     const searchString = request.query.searchString;
 
-    const scores = await points.retrieveTopScores(null, null, channel);
+    const scores = await retrieveTopScores(null, null, channel);
     const users = await rankItems(scores, 'users', 'object');
-    const userId = await points.getUserId(username);
+    const userId = await getUserId(username);
 
     let userRank = 0;
     for (const el of users) {
@@ -368,12 +333,12 @@ export const getUserProfile = async (request: { query: { username: string; fromT
       }
     }
 
-    const nameSurname = await points.getName(username);
-    const karmaScore = await points.getAll(username, 'from', channel);
-    const karmaGiven = await points.getAll(username, 'to', channel);
-    const activityChartIn = await points.getAll(username, 'from', channel);
-    const activityChartOut = await points.getAll(username, 'to', channel);
-    const getAll = await points.getAll(username, fromTo, channel, itemsPerPage, page, searchString);
+    const nameSurname = await getName(username);
+    const karmaScore = await getAll(username, 'from', channel);
+    const karmaGiven = await getAll(username, 'to', channel);
+    const activityChartIn = await getAll(username, 'from', channel);
+    const activityChartOut = await getAll(username, 'to', channel);
+    const getAllItems = await getAll(username, fromTo, channel, itemsPerPage, page, searchString);
 
 
     // Count Karma Points from users
@@ -414,7 +379,7 @@ export const getUserProfile = async (request: { query: { username: string; fromT
 
     console.log('Sending user name and surname.');
 
-    return { ...getAll, nameSurname, allKarma: karmaScore.count, karmaGiven: karmaGiven.count, userRank: userRank, karmaDivided: karmaDivided, activity: combineDates };
+    return { ...getAllItems, nameSurname, allKarma: karmaScore.count, karmaGiven: karmaGiven.count, userRank: userRank, karmaDivided: karmaDivided, activity: combineDates };
 
   } catch (err) {
     console.error(err.message);
@@ -425,9 +390,6 @@ export const getUserProfile = async (request: { query: { username: string; fromT
 /**
  * The default handler for this command when invoked over Slack.
  *
- * @param {*} event   See the documentation for getForSlack.
- * @param {*} request See the documentation for getForSlack.
- * @returns {*} See the documentation for getForSlack.
  */
 export const handler = async (event: any, request: any) => {
   return getForSlack(event, request);

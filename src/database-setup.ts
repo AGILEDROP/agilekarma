@@ -1,6 +1,6 @@
-/* eslint-disable max-len */
 'use strict';
 require('dotenv').config();
+
 const mysql = require('mysql');
 
 const mysqlConfig = {

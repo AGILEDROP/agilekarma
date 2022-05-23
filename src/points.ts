@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 /**
  * All the stuff that handles the giving, taking away, or otherwise querying of points.
  *
@@ -6,32 +5,24 @@
  *       aren't unit tested, as that would require anyone who runs the tests to also have a Postgres
  *       server. Instead, the functions in this file are well covered via the integration and
  *       end-to-end tests.
- *
- * @author Tim Malone <tdmalone@gmail.com>
  */
 
 'use strict';
 
 import { Points } from "./interface/interface";
 
-const mysql = require('mysql');
-const uuid = require('uuid');
-const slack = require('./slack');
+import mysql from 'mysql';
+import uuid from 'uuid';
+import { getChannelName, getUserName } from './slack';
 const scoresTableName = 'score';
-const moment = require('moment');
+import moment from 'moment';
 
-/* eslint-disable no-process-env */
-/* eslint-enable no-process-env */
+
 const mysqlConfig = {
-  // eslint-disable-next-line no-process-env
   host: process.env.DATABASE_HOST,
-  // eslint-disable-next-line no-process-env
   port: process.env.DATABASE_PORT,
-  // eslint-disable-next-line no-process-env
   user: process.env.DATABASE_USER,
-  // eslint-disable-next-line no-process-env
   password: process.env.DATABASE_PASSWORD,
-  // eslint-disable-next-line no-process-env
   database: process.env.DATABASE_NAME
 };
 
@@ -43,15 +34,6 @@ const timeLimit = process.env.UNDO_TIME_LIMIT;
 
 /**
  * Retrieves all scores from the database, ordered from highest to lowest per channel.
- *
- * @param {string} channelId
- *   Slack channel id.
- * TODO: Add further smarts to retrieve only a limited number of scores, to avoid having to query
- *       everything. Note that this isn't just LIMIT, because we'll need to apply the limit
- *       separately to both users (/U[A-Z0-9]{8}/) and things (everything else) & return both sets.
- *
- * @return {array} An array of entries, each an object containing 'item' (string) and 'score'
- *                (integer) properties.
  */
 
 export const retrieveTopScores: Points = async (startDate, endDate, channelId) => {
@@ -69,18 +51,6 @@ export const retrieveTopScores: Points = async (startDate, endDate, channelId) =
  *
  * This function also sets up the database if it is not already ready, including creating the
  * scores table and activating the Postgres case-insensitive extension.
- *
- *                           operated on.
- * @return {int}
- *   The item's new score after the update has been applied.
- * @param {string} toUserId
- *   User that receives score.
- * @param {string} fromUserId
- *   User that gives score.
- * @param {string} channelId
- *   In which channel user gets score.
- * @param {string} description
- *   Optional description. To be implemented.
  */
 export const updateScore: Points = async (toUserId, fromUserId, channelId, description) => {
 
@@ -100,15 +70,6 @@ export const updateScore: Points = async (toUserId, fromUserId, channelId, descr
 /**
  *
  * Undoes last score.
- *
- * @param {string} fromUserId
- *   For which user to remove score.
- * @param {string} toUserId
- *   Sent by who.
- * @param {string} channelId
- *   on which channel.
- * @returns {Promise<string|*>}
- *   Returned promise.
  */
 const undoScore: Points = async (fromUserId, toUserId, channelId) => {
   let last;
@@ -145,13 +106,6 @@ const undoScore: Points = async (fromUserId, toUserId, channelId) => {
 
 /**
  * Gets the user score.
- *
- * @param {string} toUserId
- *   Slack user id.
- * @param {string} channelId
- *   Slack channel id.
- * @returns {Promise}
- *   Returned promise.
  */
 export const getNewScore: Points = async (toUserId, channelId) => {
   let finalResult = '';
@@ -168,7 +122,7 @@ export const getNewScore: Points = async (toUserId, channelId) => {
 
 export const checkUser = async (userId: string): Promise<string> => {
   let user;
-  const userName = await slack.getUserName(userId);
+  const userName = await getUserName(userId);
   await getUser(userId).then(function (result) {
     user = result[0];
     if ('undefined' === typeof user) {
@@ -189,15 +143,10 @@ export const checkUser = async (userId: string): Promise<string> => {
 
 /**
  * Checks if channel exists in the db.
- *
- * @param {string} channelId
- *   Slack channelId
- * @returns {Promise}
- *   Returned promise.
  */
 export const checkChannel = async (channelId: string) => {
   let channel = '';
-  const channelName = await slack.getChannelName(channelId);
+  const channelName = await getChannelName(channelId);
   await getChannel(channelId).then(function (result) {
     channel = result[0];
     if ('undefined' === typeof channel) {
@@ -217,12 +166,6 @@ export const checkChannel = async (channelId: string) => {
 
 /**
  * Selects score for item.
- *
- * @param {string} item
- *   Item to get the score for.
- * @param {string} channelId channel id.
- * @returns {Promise}
- *   The promise.
  */
 function getUserScore(item: string, channelId: string) {
   return new Promise(function (resolve, reject) {
@@ -245,11 +188,6 @@ function getUserScore(item: string, channelId: string) {
 
 /**
  * Retrieves all scores for leaderboard.
- *
- * @param {string} channelId
- *   Slack channel id. If undefined it will return score for all channels.
- * @returns {Promise}
- *   The promise.
  */
 function getAllScores(startDate: Date, endDate: Date, channelId: string) {
   return new Promise(function (resolve, reject) {
@@ -303,12 +241,7 @@ function getAllScores(startDate: Date, endDate: Date, channelId: string) {
 }
 
 /**
- * Retrieves all scores from_user_id
- *
- * @param {string} channelId
- *   Slack channel id. If undefined it will return score for all channels.
- * @returns {Promise}
- *   The promise.
+ * Retrieves all scores from_user_id.
  */
 export function getAllScoresFromUser(startDate: string, endDate: Date, channelId: string) {
   return new Promise(function (resolve, reject) {
@@ -327,7 +260,6 @@ export function getAllScoresFromUser(startDate: string, endDate: Date, channelId
 
     const inserts = [channelId, start, end];
 
-    // eslint-disable-next-line no-negated-condition
     str = 'SELECT to_user_id as item, ANY_VALUE(from_user_id) as from_user_id, channel_id, COUNT(score_id) as score FROM `score` WHERE `channel_id` = ? AND (`timestamp` > ? AND `timestamp` < ?) GROUP BY to_user_id ORDER BY score DESC';
 
     const query = mysql.format(str, inserts);
@@ -345,11 +277,6 @@ export function getAllScoresFromUser(startDate: string, endDate: Date, channelId
 
 /**
  * Retrieves all scores from_user_id
- *
- * @param {string} channelId
- *   Slack channel id. If undefined it will return score for all channels.
- * @returns {Promise}
- *   The promise.
  */
 export const getKarmaFeed = (itemsPerPage: string | number, page: number, searchString: string, channelId: string, startDate: Date, endDate: Date) => {
   return new Promise(function (resolve, reject) {
@@ -434,11 +361,6 @@ export const getKarmaFeed = (itemsPerPage: string | number, page: number, search
 
 /**
  * Gets the count of user scores for day.
- *
- * @param {string} fromUserId
- *   Voting user  slack id.
- * @returns {Promise<{message: string, operation: boolean}|{message: null, operation: boolean}>}
- *   Returns promise with message and operation.
  */
 export const getDailyUserScore = async (fromUserId: string) => {
   const limit = votingLimit;
@@ -466,17 +388,6 @@ export const getDailyUserScore = async (fromUserId: string) => {
 
 /**
  * Inserts or updates score for item.
- *
- * @param {string}  toUserId
- *   Who to score.
- * @param {string}  fromUserId
- *    From whom.
- * @param {string}  channelId
- *    On which channel.
- * @param {string}  description
- *    Optional description.
- * @returns {Promise}
- *   The promise.
  */
 function insertScore(toUserId: string, fromUserId: string, channelId: string, description: undefined = null) {
 
@@ -503,11 +414,6 @@ function insertScore(toUserId: string, fromUserId: string, channelId: string, de
 
 /**
  *  Gets the user from the db.
- *
- * @param {string} userId
- *   Slack user id.
- * @returns {Promise}
- *  Returned promise.
  */
 function getUser(userId: string): Promise<{ user_id: string }[]> {
   return new Promise(function (resolve, reject) {
@@ -532,11 +438,6 @@ function getUser(userId: string): Promise<{ user_id: string }[]> {
 
 /**
  *  Gets the Name from 'username' from the db.
- *
- * @param {string} username
- *   Slack user id.
- * @returns {Promise}
- *  Returned promise.
  */
 export function getName(username: string) {
   return new Promise(function (resolve, reject) {
@@ -560,11 +461,6 @@ export function getName(username: string) {
 
 /**
  *  Gets the Name from 'username' from the db.
- *
- * @param {string} username
- *   Slack user id.
- * @returns {Promise}
- *  Returned promise.
  */
 export function getUserId(username: string) {
   return new Promise(function (resolve, reject) {
@@ -586,7 +482,7 @@ export function getUserId(username: string) {
   });
 }
 
-export const getAll = async (username: string, fromTo: string, channel: string, itemsPerPage: string | number, page: number, searchString: string) => {
+export const getAll = async (username?: string, fromTo?: string, channel?: string, itemsPerPage?: string | number, page?: number, searchString?: string) => {
 
   const userId = await getUserId(username);
 
@@ -675,13 +571,7 @@ export const getAll = async (username: string, fromTo: string, channel: string, 
 }
 
 /**
- *
  * Inserts user into db.
- *
- * @param {string} userId
- *   Slack user id.
- * @returns {Promise}
- *   Returned promise.
  */
 function insertUser(userId: string, userName: string) {
   return new Promise(function (resolve, reject) {
@@ -706,11 +596,6 @@ function insertUser(userId: string, userName: string) {
 
 /**
  * Gets the channel from db.
- *
- * @param {string} channelId
- *   Slack channel id.
- * @returns {Promise}
- *   Returned promise.
  */
 function getChannel(channelId: string) {
   return new Promise(function (resolve, reject) {
@@ -734,13 +619,6 @@ function getChannel(channelId: string) {
 
 /**
  * Inserts channel into db.
- *
- * @param {string} channelId
- *   Slack channel id.
- * @param {string} channelName
- *   Slack channel name.
- * @returns {Promise}
- *   Returned promise.
  */
 function insertChannel(channelId: string, channelName: string) {
   return new Promise(function (resolve, reject) {
@@ -764,13 +642,6 @@ function insertChannel(channelId: string, channelName: string) {
 
 /**
  * Gets the last score record for user per channel.
- *
- * @param {string} fromUserId
- *   User id to retrieve the last score.
- * @param {string} channelId
- *   Slack channel id.
- * @returns {Promise}
- *   Returned promise.
  */
 function getLast(fromUserId: Date, channelId: string) {
   return new Promise(function (resolve, reject) {
@@ -795,11 +666,6 @@ function getLast(fromUserId: Date, channelId: string) {
 
 /**
  * Removes score record from db.
- *
- * @param {string} scoreId
- *   Score id to delete.
- * @returns {Promise}
- *   The returned promise.
  */
 function removeLast(scoreId: never) {
   return new Promise(function (resolve, reject) {
@@ -823,11 +689,6 @@ function removeLast(scoreId: never) {
 
 /**
  * Gets the count of daily scores by user.
- *
- * @param {string} fromUserId
- *   The voting user slack id.
- * @returns {Promise}
- *   Returned promise.
  */
 function getDayilyVotesByUser(fromUserId: string) {
 
@@ -853,9 +714,6 @@ function getDayilyVotesByUser(fromUserId: string) {
 
 /**
  * Retrieves all channels for leaderboard.
- *
- * @returns {Promise}
- *   The promise.
  */
 export const getAllChannels = () => {
   return new Promise(function (resolve, reject) {

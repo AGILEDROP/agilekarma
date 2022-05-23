@@ -3,16 +3,14 @@
  *
  * TODO: Add the ability to customise these messages - probably via JSON objects in environment
  *       variables.
- *
- * @author Julian Calaby <julian.calaby@gmail.com>
  */
 
 'use strict';
 
-const helpers = require('./helpers'),
-  operations = require('./operations').operations;
+import { isPlural, maybeLinkItem } from "./helpers";
+import { operations } from "./operations";
 
-const messages: any = {};
+export const messages: any = {};
 
 messages[operations.PLUS] = [
   {
@@ -80,15 +78,8 @@ messages[operations.SELF] = [
 
 /**
  * Retrieves a random message from the given pool of messages.
- *
- * @param {string}  operation The name of the operation to retrieve potential messages for.
- *                            See operations.js.
- * @param {string}  item      The subject of the message, eg. 'U12345678' or 'SomeRandomThing'.
- * @param {integer} score     The item's current score. Defaults to 0 if not supplied.
- *
- * @returns {string} A random message from the chosen pool.
  */
-const getRandomMessage = (operation: string, item: any, score = 0) => {
+export const getRandomMessage = (operation: string, item: any, score = 0) => {
 
   const messageSets = messages[operation];
   let format = '';
@@ -130,12 +121,12 @@ const getRandomMessage = (operation: string, item: any, score = 0) => {
     );
   }
 
-  const plural = helpers.isPlural(score) ? 's' : '',
+  const plural = isPlural(score) ? 's' : '',
     max = chosenSet.length - 1,
     random = Math.floor(Math.random() * max),
     message = chosenSet[random];
 
-  const formattedMessage = format.replace('<item>', helpers.maybeLinkItem(item))
+  const formattedMessage = format.replace('<item>', maybeLinkItem(item))
     .replace('<score>', score)
     .replace('<plural>', plural)
     .replace('<message>', message);

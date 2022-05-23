@@ -4,15 +4,10 @@ require('dotenv').config();
 const mysql = require('mysql');
 
 const mysqlConfig = {
-  // eslint-disable-next-line no-process-env
   host: process.env.DATABASE_HOST,
-  // eslint-disable-next-line no-process-env
   port: process.env.DATABASE_PORT,
-  // eslint-disable-next-line no-process-env
   user: process.env.DATABASE_USER,
-  // eslint-disable-next-line no-process-env
   password: process.env.DATABASE_PASSWORD,
-  // eslint-disable-next-line no-process-env
   database: process.env.DATABASE_NAME
 };
 console.log(mysqlConfig);

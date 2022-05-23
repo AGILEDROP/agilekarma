@@ -14,12 +14,6 @@ let slack, users;
 
 /**
  * Injects the Slack client to be used for all outgoing messages.
- *
- * @param {WebClient} client An instance of Slack's WebClient as documented at
- *                           https://slackapi.github.io/node-slack-sdk/web_api and
- *                           implemented at
- *                           https://github.com/slackapi/node-slack-sdk/blob/master/src/WebClient.ts
- * @returns {void}
  */
 export const setSlackClient = (client: string) => {
   slack = client;
@@ -27,9 +21,7 @@ export const setSlackClient = (client: string) => {
 
 /**
  * Retrieves a list of all users in the linked Slack team. Caches it in memory.
- *
- * @returns {object} A collection of Slack user objects, indexed by the user IDs (Uxxxxxxxx).
- */
+ * */
 export const getUserList = async () => {
 
   if (users) {
@@ -56,10 +48,6 @@ export const getUserList = async () => {
 /**
  * Given a Slack user ID, returns the user's real name or optionally, the user's username. If the
  * user *does not* have a real name set, their username is returned regardless.
- *
- * @param {string} userId   A Slack user ID in the format Uxxxxxxxx.
- * @param {bool}   username Whether the username should always be returned instead of the real name.
- * @returns {string} The user's real name, as per their Slack profile.
  */
 export const getUserName = async (userId: string, username = false) => {
 
@@ -85,13 +73,6 @@ export const getUserName = async (userId: string, username = false) => {
 
 /**
  * Sends a message to a Slack channel.
- *
- * @param {string|Object} text    Either message text to send, or a Slack message payload. See the
- *                                docs at https://api.slack.com/methods/chat.postMessage and
- *                                https://api.slack.com/docs/message-formatting.
- * @param {string}        channel The ID of the channel to send the message to. Can alternatively
- *                                be provided as part of the payload in the previous argument.
- * @return {Promise} A Promise to send the message to Slack.
  */
 export const sendMessage = (text: string, channel: string) => {
 
@@ -122,16 +103,8 @@ export const sendMessage = (text: string, channel: string) => {
 }; // SendMessage.
 /**
  * Sends an Ephemeral message to a Slack channel.
- *
- * @param {string|Object} text    Either message text to send, or a Slack message payload. See the
- *                                docs at https://api.slack.com/methods/chat.postMessage and
- *                                https://api.slack.com/docs/message-formatting.
- * @param {string}        channel The ID of the channel to send the message to. Can alternatively
- *                                be provided as part of the payload in the previous argument.
- * @param {string}        user    UserId to sent the message to.
- * @return {Promise} A Promise to send the message to Slack.
  */
-export const sendEphemeral = (text: string, channel: string, user: string) => {
+export const sendEphemeral = (text: string, channel: string | object, user: string) => {
 
   let payload = {
     channel,
@@ -163,11 +136,6 @@ export const sendEphemeral = (text: string, channel: string, user: string) => {
 /**
  *
  * Filters the channel array.
- *
- * @param {array} channelData
- *   Single item from array.
- * @returns {boolean}
- *   Returns T|F.
  */
 function channelFilter(channelData: { id: string }) {
   return this === channelData.id;
@@ -176,11 +144,6 @@ function channelFilter(channelData: { id: string }) {
 /**
  *
  * Gets the channel name from slack api.
- *
- * @param {string} channelId
- *   ChannelId to get name for.
- * @returns {Promise}
- *   Returned promise./
  */
 export const getChannelName = async (channelId: string) => {
   const channelList = await slack.conversations.list({
