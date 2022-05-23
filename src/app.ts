@@ -5,8 +5,9 @@
  */
 
 import Express from 'express';
+import { handleEvent } from './events';
+import { getForChannels, getForWeb } from './leaderboard';
 
-const events = require('./events');
 const leaderboard = require('./leaderboard');
 
 const { SLACK_VERIFICATION_TOKEN } = process.env;
@@ -67,11 +68,11 @@ export const handleGet = async (request: Express.Request, response: Express.Resp
     // provided - the full link can be retrieved by requesting the leaderboard within Slack.
     // TODO: This should probably be split out into a separate function of sorts, like handlePost.
     case '/leaderboard':
-      response.json(await leaderboard.getForWeb(request));
+      response.json(await getForWeb(request));
       break;
 
     case '/channels':
-      response.json(await leaderboard.getForChannels(request));
+      response.json(await getForChannels(request));
       break;
 
     case '/fromusers':
@@ -140,5 +141,5 @@ export const handlePost = (request: Express.Request, response: Express.Response)
   }
 
   // Handle the event now. If the event is invalid, this will return false.
-  return events.handleEvent(request.body.event, request);
+  return handleEvent(request.body.event, request);
 }; // HandlePost.

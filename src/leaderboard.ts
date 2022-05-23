@@ -20,7 +20,7 @@ const querystring = require('querystring');
  * @param {string} channelId  ChannelId to get score for.
  * @returns {string} The leaderboard URL, which will be picked up in ../index.js when called.
  */
-const getLeaderboardUrl = (request: { headers: { host: string; }; }, channelId: string) => {
+export const getLeaderboardUrl = (request: { headers: { host: string; }; }, channelId: string) => {
 
   const hostname = request.headers.host;
 
@@ -64,7 +64,7 @@ const getLeaderboardWeb = (request: {}, channelId: string) => {
  *                  format is 'slack') or objects containing 'rank', 'item' and 'score' values (if
  *                  format is 'object').
  */
-const rankItems = async (topScores: { item: string, score: number }[], itemType = 'users', format = 'slack') => {
+export const rankItems = async (topScores: { item: string, score: number }[], itemType = 'users', format = 'slack') => {
 
   let lastScore, lastRank, output;
   const items = [];
@@ -129,7 +129,7 @@ const rankItems = async (topScores: { item: string, score: number }[], itemType 
 
 }; // RankItems.
 
-const userScores = async (topScores: { item: string, from_user_id: string, score: number, channel_id: string }[]) => {
+export const userScores = async (topScores: { item: string, from_user_id: string, score: number, channel_id: string }[]) => {
 
   const items = [];
   let output;
@@ -175,7 +175,7 @@ const userScores = async (topScores: { item: string, from_user_id: string, score
  * @param {object} request The Express request object that resulted in this handler being run.
  * @returns {Promise} A Promise to send the Slack message.
  */
-const getForSlack = async (event: { channel: string; user: string; }, request: object) => {
+export const getForSlack = async (event: { channel: string; user: string; }, request: object) => {
 
   try {
     const limit = 5;
@@ -248,7 +248,7 @@ const getForSlack = async (event: { channel: string; user: string; }, request: o
  * @param {object} request The Express request object that resulted in this handler being run.
  * @returns {string} HTML for the browser.
  */
-const getForWeb = async (request: { query: { startDate: Date; endDate: Date; channel: string; }; }) => {
+export const getForWeb = async (request: { query: { startDate: Date; endDate: Date; channel: string; }; } | Express.Request) => {
 
   try {
 
@@ -274,7 +274,7 @@ const getForWeb = async (request: { query: { startDate: Date; endDate: Date; cha
  * @param {object} request The Express request object that resulted in this handler being run.
  * @returns {string} JSON for the browser.
  */
-const getForChannels = async (request: {}) => {
+export const getForChannels = async (request: {}) => {
 
   try {
     const channels = await points.getAllChannels();
@@ -293,7 +293,7 @@ const getForChannels = async (request: {}) => {
  * @param {object} request The Express request object that resulted in this handler being run.
  * @returns {string} JSON for the browser.
  */
-const getAllScoresFromUser = async (request: { query: { startDate: Date; endDate: Date; channel: string; }; }) => {
+export const getAllScoresFromUser = async (request: { query: { startDate: Date; endDate: Date; channel: string; }; }) => {
 
   try {
     const startDate = request.query.startDate;
@@ -323,7 +323,7 @@ const getAllScoresFromUser = async (request: { query: { startDate: Date; endDate
  * @param {object} request The Express request object that resulted in this handler being run.
  * @returns {string} JSON for the browser.
  */
-const getKarmaFeed = async (request: { query: { itemsPerPage: number; page: number; searchString: string; startDate: Date; endDate: Date; channel: string; }; }) => {
+export const getKarmaFeed = async (request: { query: { itemsPerPage: number; page: number; searchString: string; startDate: Date; endDate: Date; channel: string; }; }) => {
 
   try {
 
@@ -346,7 +346,7 @@ const getKarmaFeed = async (request: { query: { itemsPerPage: number; page: numb
 
 
 
-const getUserProfile = async (request: { query: { username: string; fromTo: string; channelProfile: string; itemsPerPage: number; page: number; searchString: string; }; }) => {
+export const getUserProfile = async (request: { query: { username: string; fromTo: string; channelProfile: string; itemsPerPage: number; page: number; searchString: string; }; }) => {
 
   try {
     const username = request.query.username;
@@ -429,20 +429,8 @@ const getUserProfile = async (request: { query: { username: string; fromTo: stri
  * @param {*} request See the documentation for getForSlack.
  * @returns {*} See the documentation for getForSlack.
  */
-const handler = async (event: any, request: any) => {
+export const handler = async (event: any, request: any) => {
   return getForSlack(event, request);
 };
 
 export { };
-
-module.exports = {
-  getLeaderboardUrl,
-  rankItems,
-  getForSlack,
-  getForWeb,
-  handler,
-  getForChannels,
-  getAllScoresFromUser,
-  getKarmaFeed,
-  getUserProfile
-};

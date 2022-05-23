@@ -29,7 +29,7 @@ const timeLimit = Math.floor(process.env.UNDO_TIME_LIMIT / 60);
  *                         private channels - aka groups) that the message was sent from.
  * @return {Promise} A Promise to send a Slack message back to the requesting channel.
  */
-const handleSelfPlus = (user: string, channel: object) => {
+export const handleSelfPlus = (user: string, channel: object) => {
   console.log(user + ' tried to alter their own score.');
   const message = messages.getRandomMessage(operations.operations.SELF, user);
   return slack.sendEphemeral(message, channel, user);
@@ -85,7 +85,7 @@ const processUserData: Events = async (item, operation, channel, userVoting, des
  * @return {Promise} A Promise to send a Slack message back to the requesting channel after the
  *                   points have been updated.
  */
-const handlePlusMinus: Events = async (item, operation, channel, userVoting, description) => {
+export const handlePlusMinus: Events = async (item, operation, channel, userVoting, description) => {
   try {
     if ('-' === operation) {
       return null;
@@ -152,7 +152,7 @@ const undoPlus = async (event: { user: string; channel: string; }) => {
  *                         https://api.slack.com/events/app_mention for details.
  * @returns {Promise} A Promise to send the Slack message.
  */
-const sayThankyou = (event: { user: string; channel: string; }) => {
+export const sayThankyou = (event: { user: string; channel: string; }) => {
 
   const thankyouMessages = [
     'Don\'t mention it!',
@@ -180,7 +180,7 @@ const sayThankyou = (event: { user: string; channel: string; }) => {
  *                         https://api.slack.com/events/app_mention for details.
  * @returns {Promise} A Promise to send the Slack message.
  */
-const sendHelp = async (event: { text: string; channel: string; user: string; }) => {
+export const sendHelp = async (event: { text: string; channel: string; user: string; }) => {
 
   const botUserID = await helpers.extractUserID(event.text);
   const userName = await slack.getUserName(botUserID); // 'U01ASBLRRNZ'
@@ -202,7 +202,7 @@ const sendHelp = async (event: { text: string; channel: string; user: string; })
 
 }; // SendHelp.
 
-const handlers = {
+export const handlers = {
 
   /**
    * Handles standard incoming 'message' events sent from Slack.
@@ -297,7 +297,7 @@ const handlers = {
  * @return {bool|Promise} Either `false` if the event cannot be handled, or a Promise as returned
  *                        by the event's handler function.
  */
-const handleEvent = (event: { type: string; subtype: string; text: string; }, request: object) => {
+export const handleEvent = (event: { type: string; subtype: string; text: string; }, request: object) => {
 
   // If the event has no type, something has gone wrong.
   if ('undefined' === typeof event.type) {
@@ -333,12 +333,3 @@ const handleEvent = (event: { type: string; subtype: string; text: string; }, re
 }; // HandleEvent.
 
 export { };
-
-module.exports = {
-  handleSelfPlus,
-  handlePlusMinus,
-  sayThankyou,
-  sendHelp,
-  handlers,
-  handleEvent
-};
