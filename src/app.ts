@@ -4,18 +4,24 @@
  * Simple logging of requests.
  */
 
-import Express from 'express';
+import { Request, Response } from 'express';
 import { handleEvent } from './events';
-import { getAllScoresFromUser, getForChannels, getForWeb, getKarmaFeed, getUserProfile } from './leaderboard';
+import {
+  getAllScoresFromUser,
+  getForChannels,
+  getForWeb,
+  getKarmaFeed,
+  getUserProfile,
+} from './leaderboard';
 
 const { SLACK_VERIFICATION_TOKEN } = process.env;
 
 const HTTP_403 = 403;
 const HTTP_500 = 500;
 
-export const logRequest = (request: Express.Request) => {
+export const logRequest = (request: Request) => {
   console.log(
-    `${request.ip} ${request.method} ${request.path} ${request.headers['user-agent']}`,
+    `${request.ip} ${request.method} ${request.path} ${request.headers['user-agent']}`
   );
 };
 
@@ -54,7 +60,7 @@ export const validateToken = (suppliedToken: string, serverToken: string) => {
  * Handles GET requests to the app. At the moment this only really consists of an authenticated
  * view of the full leaderboard.
  */
-export const handleGet = async (request: Express.Request, response: Express.Response) => {
+export const handleGet = async (request: Request, response: Response) => {
   logRequest(request);
 
   switch (request.path.replace(/\/$/, '')) {
@@ -91,7 +97,9 @@ export const handleGet = async (request: Express.Request, response: Express.Resp
 
     // A simple default GET response is sometimes useful for troubleshooting.
     default:
-      response.send('It works! However, this app only accepts POST requests for now.');
+      response.send(
+        'It works! However, this app only accepts POST requests for now.'
+      );
       break;
   }
 }; // HandleGet.
@@ -99,7 +107,7 @@ export const handleGet = async (request: Express.Request, response: Express.Resp
 /**
  * Handles POST requests to the app.
  */
-export const handlePost = (request: Express.Request, response: Express.Response) => {
+export const handlePost = (request: Request, response: Response) => {
   logRequest(request);
 
   // Respond to challenge sent by Slack during event subscription set up.
@@ -110,7 +118,10 @@ export const handlePost = (request: Express.Request, response: Express.Response)
   }
 
   // Ensure the verification token in the incoming request is valid.
-  const validation = validateToken(request.body.token, SLACK_VERIFICATION_TOKEN);
+  const validation = validateToken(
+    request.body.token,
+    SLACK_VERIFICATION_TOKEN
+  );
   if (validation !== true) {
     response.status(validation.error).send(validation.message);
     return false;

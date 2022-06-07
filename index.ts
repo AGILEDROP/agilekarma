@@ -3,15 +3,14 @@
  * Like plusplus.chat, but one that actually works, because you can host it yourself! 😉
  */
 
-import { handleGet, handlePost } from "src/app";
-import { setSlackClient } from "src/slack";
-
+import { handleGet, handlePost } from 'src/app';
+import { setSlackClient } from 'src/slack';
 
 require('dotenv').config();
 
 import fs from 'fs';
 import mime from 'mime';
-import express from 'express';
+import express, { Express, Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import slackClient from '@slack/client';
 
@@ -25,18 +24,18 @@ const FRONTEND_URL = protocol + frontendUrl;
  * Starts the server and bootstraps the app.
  */
 
-const bootstrap = (options = { express, slack }) => {
+const bootstrap = (options?: { express: Express; slack: any }) => {
   // Allow alternative implementations of both Express and Slack to be passed in.
   const server = options.express || express();
   setSlackClient(
-    options.slack || new slackClient.WebClient(SLACK_OAUTH_ACCESS_TOKEN),
+    options.slack || new slackClient.WebClient(SLACK_OAUTH_ACCESS_TOKEN)
   );
 
-  server.use((req: Express.Request, res: Express.Request, next: () => void) => {
+  server.use((req: Request, res: Response, next: () => void) => {
     res.header('Access-Control-Allow-Origin', FRONTEND_URL); // update to match the domain you will make the request from
     res.header(
       'Access-Control-Allow-Headers',
-      'Origin, X-Requested-With, Content-Type, Accept',
+      'Origin, X-Requested-With, Content-Type, Accept'
     );
     next();
   });
@@ -47,13 +46,19 @@ const bootstrap = (options = { express, slack }) => {
   server.post('/', handlePost);
 
   // Static assets.
-  server.get('/assets/*', (request: { _parsedUrl: { path: string } }, response: { setHeader: any, send: any }) => {
-    const path = `src/${request._parsedUrl.path}`;
-    const type = mime.getType(path);
+  server.get(
+    '/assets/*',
+    (
+      request: Request & { _parsedUrl: { path: string } },
+      response: Response
+    ) => {
+      const path = `src/${request._parsedUrl.path}`;
+      const type = mime.getType(path);
 
-    response.setHeader('Content-Type', type);
-    response.send(fs.readFileSync(path));
-  });
+      response.setHeader('Content-Type', type);
+      response.send(fs.readFileSync(path));
+    }
+  );
 
   // Additional routes.
   server.get('/leaderboard', handleGet);
@@ -72,6 +77,6 @@ if (require.main === module) {
   bootstrap();
 }
 
-export { };
+export {};
 
 module.exports = bootstrap;

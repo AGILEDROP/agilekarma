@@ -9,7 +9,10 @@
     "noImplicitAny": true,
     "removeComments": true,
     "preserveConstEnums": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "paths": {
+      "@types": ["src/types.d.ts"]
+    }
   },
   "files": ["index.ts"],
   "include": ["src/**/*.ts", "src/events.ts"],

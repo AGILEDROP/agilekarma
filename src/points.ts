@@ -9,7 +9,7 @@
 
 'use strict';
 
-import { Points } from "./interface/interface";
+import { Points } from "@types";
 
 import mysql from 'mysql';
 import uuid from 'uuid';

@@ -8,7 +8,7 @@
 'use strict';
 
 import { extractCommand, extractPlusMinusEventData, extractUserID } from "./helpers";
-import { Events } from "./interface/interface";
+import { Events } from "@types";
 import { handler } from "./leaderboard";
 import { getRandomMessage } from "./messages";
 import { getOperationName, operations } from "./operations";
