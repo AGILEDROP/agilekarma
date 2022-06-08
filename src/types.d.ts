@@ -3,20 +3,10 @@ declare global {
     interface ProcessEnv {
       UNDO_TIME_LIMIT: number;
       SLACK_VERIFICATION_TOKEN: string;
+      DATABASE_PORT: number
     }
   }
 }
-
-export type Points = (
-  startDate?: Date,
-  endDate?: Date,
-  channelId?: string,
-  scores?: any,
-  description?: string,
-  toUserId?: string,
-  fromUserId?: string
-) => any;
-
 export interface Events {
   (
     item?: string,
