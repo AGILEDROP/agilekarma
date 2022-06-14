@@ -7,6 +7,7 @@ declare global {
     }
   }
 }
+
 export interface Events {
   (
     item?: string,
@@ -15,4 +16,10 @@ export interface Events {
     userVoting?: string,
     description?: string
   ): Promise<string>;
+}
+
+export interface PlusMinusEventData {
+  item: string,
+  operation: string,
+  description: string
 }

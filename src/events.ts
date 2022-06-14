@@ -24,7 +24,7 @@ const timeLimit = Math.floor(process.env.UNDO_TIME_LIMIT / 60);
  * Handles an attempt by a user to 'self plus' themselves, which includes both logging the attempt
  * and letting the user know it wasn't successful.
  */
-export const handleSelfPlus = (user: string, channel: object) => {
+export const handleSelfPlus = (user: string, channel: string) => {
   console.log(user + ' tried to alter their own score.');
   const message = getRandomMessage(operations.SELF, user);
   return sendEphemeral(message, channel, user);
@@ -176,7 +176,12 @@ export const handlers = {
   message: async (event: { text: string; user: string; channel: string; }) => {
 
     // Extract the relevant data from the message text.
-    const { item, operation, description } = extractPlusMinusEventData(event.text);
+    const data = extractPlusMinusEventData(event.text);
+
+    if (!data) {
+      return false;
+    }
+    const { item, operation, description } = data;
 
     const userList = await getUserList();
     const userIsBot = Boolean(Object.values(userList).find((user: { id: number; is_bot: boolean; }) => user.id === item && user.is_bot === true));

@@ -4,8 +4,9 @@ import Handlebars from "handlebars";
 import { getUserName } from "./slack";
 import crypto from "crypto"
 import fs from "fs"
+import { PlusMinusEventData } from "@types";
 
-const templates: { header?: string, footer?: string } = {};
+const templates: Record<string, string> = {};
 
 /* eslint-disable no-process-env */
 const envSecret1 = process.env.SLACK_VERIFICATION_TOKEN,
@@ -21,7 +22,7 @@ const ONE_DAY = 60 * 60 * 24, // eslint-disable-line no-magic-numbers
  * TODO: May need to ensure that commands are whole words, so a smaller command doesn't get
  *       detected inside a larger one.
  */
-export const extractCommand = (message: string, commands: []) => {
+export const extractCommand = (message: string, commands: string[]): string | boolean => {
 
   let firstLocation = Number.MAX_SAFE_INTEGER,
     firstCommand;
@@ -41,7 +42,7 @@ export const extractCommand = (message: string, commands: []) => {
 /**
  * Extracts a valid Slack user ID from a string of text.
  */
-export const extractUserID = (text: string) => {
+export const extractUserID = (text: string): string => {
   const match = text.match(/U[A-Z0-9]+/);
   return match ? match[0] : '';
 };
@@ -50,7 +51,7 @@ export const extractUserID = (text: string) => {
  * Gets the user or 'thing' that is being spoken about, and the 'operation' being done on it.
  * We take the operation down to one character, and also support — due to iOS' replacement of --.(i.e. + or -).
  */
-export const extractPlusMinusEventData = (text: string) => {
+export const extractPlusMinusEventData = (text: string): PlusMinusEventData | boolean => {
   let usernameID;
   const data = text.match(/<@([A-Za-z0-9]+)>+\s*(\+{2}|-{2}|—{1}|undo)\s*(.+)?/);
   if (null !== data && 'undefined' !== typeof data[1] && null !== data[1]) {
@@ -78,7 +79,7 @@ export const extractPlusMinusEventData = (text: string) => {
 /**
  * Generates a time-based token based on secrets from the environment.
  */
-export const getTimeBasedToken = (ts: string) => {
+export const getTimeBasedToken = (ts: string): string => {
 
   if (!ts) {
     throw Error('Timestamp not provided when getting time-based token.');
@@ -93,14 +94,14 @@ export const getTimeBasedToken = (ts: string) => {
 /**
  * Returns the current time as a standard Unix epoch timestamp.
  */
-export const getTimestamp = () => {
+export const getTimestamp = (): number => {
   return Math.floor(Date.now() / MILLISECONDS_TO_SECONDS);
 };
 
 /**
  * Determines whether or not a number should be referred to as a plural - eg. anything but 1 or -1.
  */
-export const isPlural = (number: number) => {
+export const isPlural = (number: number): boolean => {
   return 1 !== Math.abs(number);
 };
 
@@ -108,7 +109,7 @@ export const isPlural = (number: number) => {
  * Validates a time-based token to ensure it is both still valid, and that it can be successfully
  * re-hashed using the expected secrets.
  */
-export const isTimeBasedTokenStillValid = (token: string, ts: any) => {
+export const isTimeBasedTokenStillValid = (token: string, ts: any): boolean => {
   const now = getTimestamp();
 
   // Don't support tokens too far from the past.
@@ -133,7 +134,7 @@ export const isTimeBasedTokenStillValid = (token: string, ts: any) => {
 /**
  * Determines whether or not a string represents a Slack user ID - eg. U12345678.
  */
-export const isUser = (item: string) => {
+export const isUser = (item: string): boolean => {
   return item.match(/U[A-Z0-9]+/) ? true : false;
 };
 
@@ -145,14 +146,14 @@ export const isUser = (item: string) => {
  * @return {string} The item linked with Slack mrkdwn
  * @see https://api.slack.com/docs/message-formatting#linking_to_channels_and_users
  */
-export const maybeLinkItem = (item: string) => {
+export const maybeLinkItem = (item: string): string => {
   return isUser(item) ? '<@' + item + '>' : item;
 };
 
 /**
  * Renders HTML for the browser, using Handlebars. Includes a standard header and footer.
  */
-export const render = async (templatePath: string, context = {}, request: { query?: { botUser: string } } = {}) => {
+export const render = async (templatePath: string, context = {}, request: { query?: { botUser: string } } = {}): Promise<string> => {
 
   // Retrieve the header and footer HTML, if we don't already have it in memory.
   if (!templates.header) templates.header = fs.readFileSync('src/html/header.html', 'utf8');

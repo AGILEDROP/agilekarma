@@ -104,7 +104,7 @@ export const sendMessage = (text: string, channel: string) => {
 /**
  * Sends an Ephemeral message to a Slack channel.
  */
-export const sendEphemeral = (text: string, channel: string | object, user: string) => {
+export const sendEphemeral = (text: string, channel: string, user: string) => {
 
   let payload = {
     channel,
