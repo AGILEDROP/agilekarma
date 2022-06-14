@@ -23,3 +23,24 @@ export interface PlusMinusEventData {
   operation: string,
   description: string
 }
+
+export interface Score {
+  item: string,
+  score: number,
+  from_user_id: string,
+  channel_id: string
+}
+
+export interface Item {
+  rank: number,
+  item: string,
+  score: string,
+  item_id: string
+}
+
+export interface UserScore {
+  toUser: string,
+  fromUser: string,
+  score: number,
+  channel: string
+}

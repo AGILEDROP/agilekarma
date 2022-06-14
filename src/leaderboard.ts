@@ -5,7 +5,9 @@
 'use strict';
 
 
-import querystring from 'querystring';
+const querystring = require("querystring");
+import { Item, Score, UserScore } from '@types';
+import { Request } from 'express';
 import { isPlural, isUser, maybeLinkItem } from './helpers';
 import { getAllChannels, getName, getUserId, retrieveTopScores, getAll } from './points';
 import { getChannelName, getUserName, sendEphemeral } from './slack';
@@ -14,7 +16,7 @@ import { getChannelName, getUserName, sendEphemeral } from './slack';
  * Gets the URL for the full leaderboard, including a token to ensure that it is only viewed by
  * someone who has access to this Slack team.
  */
-export const getLeaderboardUrl = (request: { headers: { host: string; }; }, channelId: string) => {
+export const getLeaderboardUrl = (request: Request, channelId: string): string => {
 
   const hostname = request.headers.host;
 
@@ -26,7 +28,7 @@ export const getLeaderboardUrl = (request: { headers: { host: string; }; }, chan
 
 }; // GetLeaderboardUrl.
 
-const getLeaderboardWeb = (request: {}, channelId: string) => {
+const getLeaderboardWeb = (request: Request, channelId: string): string => {
 
   const params = {
     channel: channelId
@@ -44,10 +46,10 @@ const getLeaderboardWeb = (request: {}, channelId: string) => {
  * For example, 2 users on 54 would draw 1st. The next user on 52 would be 3rd, and the final on 34
  * would be 4th.
  */
-export const rankItems = async (topScores: { item: string, score: number }[], itemType = 'users', format = 'slack') => {
+export const rankItems = async (topScores: Score[], itemType = 'users', format = 'slack'): Promise<(string | Item)[]> => {
 
   let lastScore, lastRank, output;
-  const items = [];
+  let items: (Item | string)[];
 
   for (const score of topScores) {
 
@@ -109,7 +111,7 @@ export const rankItems = async (topScores: { item: string, score: number }[], it
 
 }; // RankItems.
 
-export const userScores = async (topScores: { item: string, from_user_id: string, score: number, channel_id: string }[]) => {
+export const userScores = async (topScores: Score[]): Promise<UserScore[]> => {
 
   const items = [];
   let output;
@@ -149,7 +151,7 @@ export const userScores = async (topScores: { item: string, from_user_id: string
  * Retrieves and sends the current partial leaderboard (top scores only) to the requesting Slack
  * channel.
  */
-export const getForSlack = async (event: { channel: string; user: string; }, request: object) => {
+export const getForSlack = async (event: { channel: string; user: string; }, request: Request) => {
 
   try {
     const limit = 5;
@@ -222,7 +224,7 @@ export const getForSlack = async (event: { channel: string; user: string; }, req
  * @param {object} request The Express request object that resulted in this handler being run.
  * @returns {string} HTML for the browser.
  */
-export const getForWeb = async (request: { query: { startDate: Date; endDate: Date; channel: string; }; } | Express.Request) => {
+export const getForWeb = async (request: Request) => {
 
   try {
 
