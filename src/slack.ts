@@ -10,12 +10,15 @@
 
 'use strict';
 
-let slack, users;
+import { User } from "@types";
+
+let slack: any;
+let users: Record<string, User>;
 
 /**
  * Injects the Slack client to be used for all outgoing messages.
  */
-export const setSlackClient = (client: string) => {
+export const setSlackClient = (client: any) => {
   slack = client;
 };
 
@@ -49,7 +52,7 @@ export const getUserList = async () => {
  * Given a Slack user ID, returns the user's real name or optionally, the user's username. If the
  * user *does not* have a real name set, their username is returned regardless.
  */
-export const getUserName = async (userId: string, username = false) => {
+export const getUserName = async (userId: string, username = false): Promise<string> => {
 
   const users = await getUserList();
   let user = users[userId];
@@ -74,7 +77,7 @@ export const getUserName = async (userId: string, username = false) => {
 /**
  * Sends a message to a Slack channel.
  */
-export const sendMessage = (text: string, channel: string) => {
+export const sendMessage = (text: string, channel: string): Promise<void> => {
 
   let payload = {
     channel,
@@ -88,7 +91,7 @@ export const sendMessage = (text: string, channel: string) => {
   }
 
   return new Promise((resolve, reject) => {
-    slack.chat.postMessage(payload).then((data) => {
+    slack.chat.postMessage(payload).then((data: {ok: boolean}) => {
 
       if (!data.ok) {
         console.error('Error occurred posting response.');
@@ -104,7 +107,7 @@ export const sendMessage = (text: string, channel: string) => {
 /**
  * Sends an Ephemeral message to a Slack channel.
  */
-export const sendEphemeral = (text: string | object, channel: string, user: string) => {
+export const sendEphemeral = (text: string | object, channel: string, user: string): Promise<void> => {
 
   let payload = {
     channel,
@@ -119,7 +122,7 @@ export const sendEphemeral = (text: string | object, channel: string, user: stri
   }
 
   return new Promise((resolve, reject) => {
-    slack.chat.postEphemeral(payload).then((data) => {
+    slack.chat.postEphemeral(payload).then((data: {ok: boolean}) => {
 
       if (!data.ok) {
         console.error('Error occurred posting response.');
@@ -137,7 +140,7 @@ export const sendEphemeral = (text: string | object, channel: string, user: stri
  *
  * Filters the channel array.
  */
-function channelFilter(channelData: { id: string }) {
+function channelFilter(channelData: { id: string }): boolean {
   return this === channelData.id;
 }
 
@@ -145,7 +148,7 @@ function channelFilter(channelData: { id: string }) {
  *
  * Gets the channel name from slack api.
  */
-export const getChannelName = async (channelId: string) => {
+export const getChannelName = async (channelId: string): Promise<string> => {
   const channelList = await slack.conversations.list({
     // eslint-disable-next-line camelcase
     exclude_archived: true,

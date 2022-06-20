@@ -79,7 +79,7 @@ messages[operations.SELF] = [
 /**
  * Retrieves a random message from the given pool of messages.
  */
-export const getRandomMessage = (operation: string, item: any, score = 0) => {
+export const getRandomMessage = (operation: string, item: any, score = 0): string => {
 
   const messageSets = messages[operation];
   let format = '';
@@ -127,7 +127,7 @@ export const getRandomMessage = (operation: string, item: any, score = 0) => {
     message = chosenSet[random];
 
   const formattedMessage = format.replace('<item>', maybeLinkItem(item))
-    .replace('<score>', score)
+    .replace('<score>', score.toString())
     .replace('<plural>', plural)
     .replace('<message>', message);
 

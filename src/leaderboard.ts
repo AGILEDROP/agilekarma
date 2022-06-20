@@ -325,7 +325,7 @@ export const getUserProfile = async (request: Request): Promise<any> => {
     const karmaGiven = await getAll(username, 'to', channel);
     const activityChartIn = await getAll(username, 'from', channel);
     const activityChartOut = await getAll(username, 'to', channel);
-    const getAllItems = await getAll(username, fromTo, channel, itemsPerPage, page, searchString);
+    const getAllItems = await getAll(username, fromTo, channel, itemsPerPage, Number(page), searchString);
 
 
     // Count Karma Points from users

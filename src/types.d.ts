@@ -59,3 +59,10 @@ interface AttachmentField {
 export interface Message {
   attachments: Attachment[]
 }
+
+export interface User {
+  id: string,
+  is_bot: boolean,
+  profile: Record<string, string>,
+  name: string
+}

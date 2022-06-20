@@ -460,7 +460,7 @@
    });
  }
  
- export const getAll = async (username?: string, fromTo?: string, channel?: string, itemsPerPage?: string | number, page?: number, searchString?: string) => {
+ export const getAll = async (username?: string, fromTo?: string, channel?: string, itemsPerPage?: string | number, page?: number, searchString?: string): Promise<any> => {
  
    const userId = await getUserId(username);
  
