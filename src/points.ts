@@ -63,7 +63,7 @@
   *
   * Undoes last score.
   */
- const undoScore = async (fromUserId: string, toUserId: string, channelId: string): Promise<any> => {
+ export const undoScore = async (fromUserId: string, toUserId: string, channelId: string): Promise<any> => {
   try {
     let last;
     const results: {score_id: string}[] = await getLast(fromUserId, channelId)

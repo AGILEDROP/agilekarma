@@ -4,7 +4,7 @@ import Handlebars from "handlebars";
 import { getUserName } from "./slack";
 import crypto from "crypto"
 import fs from "fs"
-import { PlusMinusEventData } from "@types";
+import { Nullable, PlusMinusEventData } from "@types";
 
 const templates: Record<string, string> = {};
 
@@ -22,7 +22,7 @@ const ONE_DAY = 60 * 60 * 24, // eslint-disable-line no-magic-numbers
  * TODO: May need to ensure that commands are whole words, so a smaller command doesn't get
  *       detected inside a larger one.
  */
-export const extractCommand = (message: string, commands: string[]): string | boolean => {
+export const extractCommand = (message: string, commands: string[]): string => {
 
   let firstLocation = Number.MAX_SAFE_INTEGER,
     firstCommand;
@@ -35,7 +35,7 @@ export const extractCommand = (message: string, commands: string[]): string | bo
     }
   }
 
-  return firstCommand ? firstCommand : false;
+  return firstCommand ? firstCommand : '';
 
 }; // ExtractCommand.
 
@@ -51,7 +51,7 @@ export const extractUserID = (text: string): string => {
  * Gets the user or 'thing' that is being spoken about, and the 'operation' being done on it.
  * We take the operation down to one character, and also support — due to iOS' replacement of --.(i.e. + or -).
  */
-export const extractPlusMinusEventData = (text: string): PlusMinusEventData | boolean => {
+export const extractPlusMinusEventData = (text: string): Nullable<PlusMinusEventData> => {
   let usernameID;
   const data = text.match(/<@([A-Za-z0-9]+)>+\s*(\+{2}|-{2}|—{1}|undo)\s*(.+)?/);
   if (null !== data && 'undefined' !== typeof data[1] && null !== data[1]) {
@@ -59,7 +59,7 @@ export const extractPlusMinusEventData = (text: string): PlusMinusEventData | bo
   }
 
   if (!usernameID) {
-    return false;
+    return null;
   }
 
   let operation = data[2];

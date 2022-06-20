@@ -7,12 +7,13 @@
 
 'use strict';
 
+import { Event, User } from "@types";
+import { Request } from "express";
 import { extractCommand, extractPlusMinusEventData, extractUserID } from "./helpers";
-import { Events } from "@types";
 import { handler } from "./leaderboard";
 import { getRandomMessage } from "./messages";
 import { getOperationName, operations } from "./operations";
-import { checkChannel, checkUser, getDailyUserScore, updateScore } from "./points";
+import { checkChannel, checkUser, getDailyUserScore, updateScore, undoScore } from "./points";
 import { getUserList, getUserName, sendEphemeral } from "./slack";
 
 
@@ -24,13 +25,13 @@ const timeLimit = Math.floor(process.env.UNDO_TIME_LIMIT / 60);
  * Handles an attempt by a user to 'self plus' themselves, which includes both logging the attempt
  * and letting the user know it wasn't successful.
  */
-export const handleSelfPlus = (user: string, channel: string) => {
+export const handleSelfPlus = (user: string, channel: string): Promise<void> => {
   console.log(user + ' tried to alter their own score.');
   const message = getRandomMessage(operations.SELF, user);
   return sendEphemeral(message, channel, user);
 };
 
-const usersList: string[] = [];
+const usersList: {voter: string, user: string}[] = [];
 
 /**
  *
@@ -39,7 +40,7 @@ const usersList: string[] = [];
  * if not it creates them and returns the
  * random message.
  */
-const processUserData: Events = async (item, operation, channel, userVoting, description) => {
+const processUserData = async (item: string, operation: string, channel:string, userVoting: string, description: string): Promise<string> => {
   const dbUserTo = await checkUser(item);
   const dbUserFrom = await checkUser(userVoting);
   const checkChannelled = await checkChannel(channel);
@@ -48,7 +49,7 @@ const processUserData: Events = async (item, operation, channel, userVoting, des
 
   const findVoter = usersList.find((user) => user.voter === userVoting);
   if (findVoter) {
-    const location = usersList.indexOf(userVoting);
+    const location = usersList.indexOf(findVoter);
     usersList.splice(location, 1);
   }
   usersList.push({
@@ -63,7 +64,7 @@ const processUserData: Events = async (item, operation, channel, userVoting, des
  *  Checks if the operation is supported and if the userVoting has reached daily limit
  *  and returns public slack message or sendEphemeral message.
  */
-export const handlePlusMinus: Events = async (item, operation, channel, userVoting, description) => {
+export const handlePlusMinus = async (item: string, operation: string, channel: string, userVoting: string, description: string): Promise<void> => {
   try {
     if ('-' === operation) {
       return null;
@@ -88,18 +89,18 @@ export const handlePlusMinus: Events = async (item, operation, channel, userVoti
 /**
  * Undoes last ++
  */
-const undoPlus = async (event: { user: string; channel: string; }) => {
+const undoPlus = async (event: { user: string; channel: string; }): Promise<void> => {
   try {
     let message;
     const findVoter = usersList.find((user) => user.voter === event.user);
     if (findVoter) {
-      const location = usersList.indexOf(event.user);
+      const location = usersList.indexOf(findVoter);
       usersList.splice(location, 1);
 
-      const score = await points.undoScore(event.user, findVoter.user, event.channel);
+      const score = await undoScore(event.user, findVoter.user, event.channel);
       // eslint-disable-next-line no-negated-condition
       if ('undefined' !== typeof score) {
-        const operationName = operations.getOperationName('-');
+        const operationName = getOperationName('-');
         message = getRandomMessage(operationName, findVoter.user, score);
       } else {
         message = 'You can undo only for duration of ' + timeLimit + ' minutes after up voting!';
@@ -122,7 +123,7 @@ const undoPlus = async (event: { user: string; channel: string; }) => {
 /**
  * Sends a random thank you message to the requesting channel.
  */
-export const sayThankyou = (event: { user: string; channel: string; }) => {
+export const sayThankyou = (event: { user: string; channel: string; }): Promise<void> => {
 
   const thankyouMessages = [
     'Don\'t mention it!',
@@ -145,9 +146,9 @@ export const sayThankyou = (event: { user: string; channel: string; }) => {
 /**
  * Sends a help message, explaining the bot's commands, to the requesting channel.
  */
-export const sendHelp = async (event: { text: string; channel: string; user: string; }) => {
+export const sendHelp = async (event: { text: string; channel: string; user: string; }): Promise<void> => {
 
-  const botUserID = await extractUserID(event.text);
+  const botUserID = extractUserID(event.text);
   const userName = await getUserName(botUserID); // 'U01ASBLRRNZ'
 
   // const userList = await slack.getUserList();
@@ -167,13 +168,13 @@ export const sendHelp = async (event: { text: string; channel: string; user: str
 
 }; // SendHelp.
 
-export const handlers = {
+export const handlers: Record<string, (event: Event, request?: Request) => Promise<void | boolean>> = {
 
   /**
    * Handles standard incoming 'message' events sent from Slack.
    * Assumes basic validation has been done before receiving the event. See handleEvent().
    */
-  message: async (event: { text: string; user: string; channel: string; }) => {
+  message: async (event) => {
 
     // Extract the relevant data from the message text.
     const data = extractPlusMinusEventData(event.text);
@@ -181,10 +182,11 @@ export const handlers = {
     if (!data) {
       return false;
     }
+    
     const { item, operation, description } = data;
 
     const userList = await getUserList();
-    const userIsBot = Boolean(Object.values(userList).find((user: { id: number; is_bot: boolean; }) => user.id === item && user.is_bot === true));
+    const userIsBot = Boolean(Object.values(userList).find((user: User) => user.id === item && user.is_bot === true));
 
     if (userIsBot && 'undo' === operation) {
       undoPlus(event);
@@ -210,9 +212,9 @@ export const handlers = {
    * Handles 'app_mention' events sent from Slack, primarily by looking for known app commands, and
    * then handing the command off for processing..
    */
-  appMention: (event: { text: string; channel: string; user: string; }, request: object) => {
+  appMention: (event, request) => {
 
-    const appCommandHandlers = {
+    const appCommandHandlers: Record<string, Function> = {
       leaderboard: handler,
       help: sendHelp,
       thx: sayThankyou,
@@ -228,7 +230,7 @@ export const handlers = {
     }
 
     if ('++') {
-      return null;
+      return false;
     }
 
     const defaultMessage = (
@@ -245,7 +247,7 @@ export const handlers = {
  * Determines whether or not incoming events from Slack can be handled by this app, and if so,
  * passes the event off to its handler function.
  */
-export const handleEvent = (event: { type: string; subtype: string; text: string; }, request: object) => {
+export const handleEvent = (event: Event, request: Request): Promise<void | boolean> | boolean => {
 
   // If the event has no type, something has gone wrong.
   if ('undefined' === typeof event.type) {

@@ -13,7 +13,7 @@ export const operations = {
 /**
  * Given a mathematical operation, returns the name of that operation.
  */
-export const getOperationName = (operation: string): string | boolean => {
+export const getOperationName = (operation: string): string => {
   let operationName: string | boolean = '';
 
   switch (operation) {
@@ -21,6 +21,6 @@ export const getOperationName = (operation: string): string | boolean => {
     case '-': operationName = operations.MINUS; break;
   }
 
-  return operationName ? operationName : false;
+  return operationName ? operationName : '';
 
 };
