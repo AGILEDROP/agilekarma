@@ -44,3 +44,18 @@ export interface UserScore {
   score: number,
   channel: string
 }
+
+interface Attachment {
+  text: string,
+  color: string,
+  fields?: AttachmentField[]
+}
+
+interface AttachmentField {
+  value: string,
+  short?: boolean
+}
+
+export interface Message {
+  attachments: Attachment[]
+}

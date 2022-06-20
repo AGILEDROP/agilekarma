@@ -6,10 +6,10 @@
 
 
 const querystring = require("querystring");
-import { Item, Score, UserScore } from '@types';
+import { Item, Message, Score, UserScore } from '@types';
 import { Request } from 'express';
 import { isPlural, isUser, maybeLinkItem } from './helpers';
-import { getAllChannels, getName, getUserId, retrieveTopScores, getAll } from './points';
+import { getAllChannels, getName, getUserId, retrieveTopScores, getAll, getAllScoresFromUser as getAllScoresFromUserPoints, getKarmaFeed as getKarmaFeedPoints } from './points';
 import { getChannelName, getUserName, sendEphemeral } from './slack';
 
 /**
@@ -46,10 +46,10 @@ const getLeaderboardWeb = (request: Request, channelId: string): string => {
  * For example, 2 users on 54 would draw 1st. The next user on 52 would be 3rd, and the final on 34
  * would be 4th.
  */
-export const rankItems = async (topScores: Score[], itemType = 'users', format = 'slack'): Promise<(string | Item)[]> => {
+export const rankItems = async (topScores: Score[], itemType = 'users', format = 'slack'): Promise<Item[]> => {
 
   let lastScore, lastRank, output;
-  let items: (Item | string)[];
+  let items: Item[];
 
   for (const score of topScores) {
 
@@ -100,7 +100,7 @@ export const rankItems = async (topScores: Score[], itemType = 'users', format =
         break;
     }
 
-    items.push(output);
+    items.push(output as Item);
 
     lastRank = rank;
     lastScore = score.score;
@@ -151,7 +151,7 @@ export const userScores = async (topScores: Score[]): Promise<UserScore[]> => {
  * Retrieves and sends the current partial leaderboard (top scores only) to the requesting Slack
  * channel.
  */
-export const getForSlack = async (event: { channel: string; user: string; }, request: Request) => {
+export const getForSlack = async (event: { channel: string; user: string; }, request: Request): Promise<any> => {
 
   try {
     const limit = 5;
@@ -174,7 +174,7 @@ export const getForSlack = async (event: { channel: string; user: string; }, req
       'No Users on Leaderboard.'
     );
 
-    let message;
+    let message: Message;
     if (users === undefined || users.length == 0) {
       message = {
         attachments: [
@@ -224,13 +224,10 @@ export const getForSlack = async (event: { channel: string; user: string; }, req
  * @param {object} request The Express request object that resulted in this handler being run.
  * @returns {string} HTML for the browser.
  */
-export const getForWeb = async (request: Request) => {
+export const getForWeb = async (request: Request): Promise<Item[]> => {
 
   try {
-
-    const startDate = request.query.startDate as string;
-    const endDate = request.query.endDate as string;
-    const channelId = request.query.channel as string;
+    const { startDate, endDate, channelId } = request.query as Record<string, string>;
 
     const scores = await retrieveTopScores(startDate, endDate, channelId);
     const users = await rankItems(scores, 'users', 'object');
@@ -247,7 +244,7 @@ export const getForWeb = async (request: Request) => {
 /**
  * Retrieves and returns all channels, for displaying on the web.
  */
-export const getForChannels = async (request: {}) => {
+export const getForChannels = async (request: Request): Promise<any> => {
 
   try {
     const channels = await getAllChannels();
@@ -263,14 +260,12 @@ export const getForChannels = async (request: {}) => {
 /**
  * Retrieves all scores from_user_id, for displaying on the web.
  */
-export const getAllScoresFromUser = async (request: { query: { startDate: Date; endDate: Date; channel: string; }; }) => {
+export const getAllScoresFromUser = async (request: Request): Promise<UserScore[]> => {
 
   try {
-    const startDate = request.query.startDate;
-    const endDate = request.query.endDate;
-    const channelId = request.query.channel;
+    const { startDate, endDate, channelId } = request.query as Record<string, string>;
     // console.log(request.query);
-    const fromUsers = await getAllScoresFromUser(startDate, endDate, channelId);
+    const fromUsers = await getAllScoresFromUserPoints(startDate, endDate, channelId);
     // console.log("FROMUSERS: " + JSON.stringify(fromUsers));
 
     const users = await userScores(fromUsers);
@@ -290,17 +285,13 @@ export const getAllScoresFromUser = async (request: { query: { startDate: Date; 
 /**
  * Retrieves all added karma with descriptions, for displaying on the web.
  */
-export const getKarmaFeed = async (request: { query: { itemsPerPage: number; page: number; searchString: string; startDate: Date; endDate: Date; channel: string; }; }) => {
+export const getKarmaFeed = async (request: Request): Promise<any> => {
 
   try {
 
-    const itemsPerPage = request.query.itemsPerPage;
-    const page = request.query.page;
-    const searchString = request.query.searchString;
-    const startDate = request.query.startDate;
-    const endDate = request.query.endDate;
-    const channelId = request.query.channel;
-    const feed = await getKarmaFeed(itemsPerPage, page, searchString, channelId, startDate, endDate);
+    const { itemsPerPage, page, searchString, startDate, endDate, channelId } = request.query as Record<string, string>;
+
+    const feed = await getKarmaFeedPoints(itemsPerPage, Number(page), searchString, channelId, startDate, endDate);
     console.log('Sending Karma Feed!');
 
     return feed;
@@ -313,16 +304,10 @@ export const getKarmaFeed = async (request: { query: { itemsPerPage: number; pag
 
 
 
-export const getUserProfile = async (request: { query: { username: string; fromTo: string; channelProfile: string; itemsPerPage: number; page: number; searchString: string; }; }) => {
+export const getUserProfile = async (request: Request): Promise<any> => {
 
   try {
-    const username = request.query.username;
-    const fromTo = request.query.fromTo;
-    const channel = request.query.channelProfile;
-
-    const itemsPerPage = request.query.itemsPerPage;
-    const page = request.query.page;
-    const searchString = request.query.searchString;
+    const { itemsPerPage, page, searchString, username, fromTo, channelProfile: channel } = request.query as Record<string, string>;
 
     const scores = await retrieveTopScores(null, null, channel);
     const users = await rankItems(scores, 'users', 'object');
@@ -393,7 +378,7 @@ export const getUserProfile = async (request: { query: { username: string; fromT
  * The default handler for this command when invoked over Slack.
  *
  */
-export const handler = async (event: any, request: any) => {
+export const handler = async (event: any, request: any): Promise<any> => {
   return getForSlack(event, request);
 };
 

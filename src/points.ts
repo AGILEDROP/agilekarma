@@ -224,7 +224,7 @@
  /**
   * Retrieves all scores from_user_id.
   */
- export const getAllScoresFromUser = (startDate: string, endDate: Date, channelId: string): Promise<any> => {
+ export const getAllScoresFromUser = (startDate: string, endDate: string, channelId: string): Promise<any> => {
    return new Promise((resolve, reject) => {
      const db = mysql.createConnection(mysqlConfig);
      let str = '';
@@ -259,7 +259,7 @@
  /**
   * Retrieves all scores from_user_id
   */
- export const getKarmaFeed = (itemsPerPage: string | number, page: number, searchString: string, channelId: string, startDate: Date, endDate: Date): Promise<any> => {
+ export const getKarmaFeed = (itemsPerPage: string | number, page: number, searchString: string, channelId: string, startDate: string, endDate: string): Promise<any> => {
    return new Promise((resolve, reject) => {
      const db = mysql.createConnection(mysqlConfig);
  
