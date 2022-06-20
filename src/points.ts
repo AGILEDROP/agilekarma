@@ -34,7 +34,7 @@
   * Retrieves all scores from the database, ordered from highest to lowest per channel.
   */
  
- export const retrieveTopScores = async (startDate: Date, endDate: Date, channelId: string): Promise<any> => {
+ export const retrieveTopScores = async (startDate: string, endDate: string, channelId: string): Promise<any> => {
    return await getAllScores(startDate, endDate, channelId)
  };
  
@@ -170,7 +170,7 @@
  /**
   * Retrieves all scores for leaderboard.
   */
- const getAllScores = (startDate: Date, endDate: Date, channelId: string): Promise<any> => {
+ const getAllScores = (startDate: string, endDate: string, channelId: string): Promise<any> => {
    return new Promise((resolve, reject) => {
      const db = mysql.createConnection(mysqlConfig);
      let str = '';
@@ -185,8 +185,8 @@
      where_str += ')';
  
      if ('undefined' !== typeof startDate || 'undefined' !== typeof endDate) {
-       start = moment.unix(startDate).format('YYYY-MM-DD HH:mm:ss');
-       end = moment.unix(endDate).format('YYYY-MM-DD HH:mm:ss');
+       start = moment.unix(Number(startDate)).format('YYYY-MM-DD HH:mm:ss');
+       end = moment.unix(Number(endDate)).format('YYYY-MM-DD HH:mm:ss');
      } else {
        start = moment(0).format('YYYY-MM-DD HH:mm:ss');
        end = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');

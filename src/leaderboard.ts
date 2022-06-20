@@ -156,7 +156,7 @@ export const getForSlack = async (event: { channel: string; user: string; }, req
   try {
     const limit = 5;
 
-    const scores = await retrieveTopScores(event.channel),
+    const scores = await retrieveTopScores(undefined, undefined, event.channel),
       users = await rankItems(scores, 'users');
 
     // Things = await rankItems( scores, 'things' );
@@ -228,9 +228,9 @@ export const getForWeb = async (request: Request) => {
 
   try {
 
-    const startDate = request.query.startDate;
-    const endDate = request.query.endDate;
-    const channelId = request.query.channel;
+    const startDate = request.query.startDate as string;
+    const endDate = request.query.endDate as string;
+    const channelId = request.query.channel as string;
 
     const scores = await retrieveTopScores(startDate, endDate, channelId);
     const users = await rankItems(scores, 'users', 'object');
