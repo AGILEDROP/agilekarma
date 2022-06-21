@@ -22,11 +22,27 @@ export interface PlusMinusEventData {
   description: string;
 }
 
-export interface Score {
+export interface TopScore {
   item: string;
   score: number;
-  from_user_id: string;
-  channel_id: string;
+}
+
+export interface GetLastScore {
+  score_id: string;
+  timestamp: number;
+}
+
+export interface Score extends TopScore {
+  from_user_id: string,
+  channel_id: string,
+}
+
+export interface KarmaFeed {
+  timestamp: Date,
+  toUser: string,
+  fromUser: string,
+  channel_name: string,
+  description: string
 }
 
 export interface Item {

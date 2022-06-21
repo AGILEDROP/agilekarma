@@ -6,7 +6,7 @@
 
 
 import querystring from "querystring";
-import { Item, Message, Score, UserScore } from '@types';
+import { Item, Message, TopScore, UserScore, Score, KarmaFeed } from '@types';
 import { Request } from 'express';
 import { isPlural, isUser, maybeLinkItem } from './helpers';
 import { getAllChannels, getName, getUserId, retrieveTopScores, getAll, getAllScoresFromUser as getAllScoresFromUserPoints, getKarmaFeed as getKarmaFeedPoints } from './points';
@@ -46,7 +46,7 @@ const getLeaderboardWeb = (request: Request, channelId: string): string => {
  * For example, 2 users on 54 would draw 1st. The next user on 52 would be 3rd, and the final on 34
  * would be 4th.
  */
-export const rankItems = async (topScores: Score[], itemType = 'users', format = 'slack'): Promise<Item[]> => {
+export const rankItems = async (topScores: TopScore[], itemType = 'users', format = 'slack'): Promise<Item[]> => {
 
   let lastScore, lastRank, output;
   let items: Item[];
@@ -330,17 +330,17 @@ export const getUserProfile = async (request: Request): Promise<any> => {
 
     // Count Karma Points from users
     let count: Record<string, number>;
-    karmaScore.feed.map((u: { fromUser: string; }) => u.fromUser).forEach((fromUser: number) => { count[fromUser] = (count[fromUser] || 0) + 1 });
+    karmaScore.feed.map((u: KarmaFeed) => u.fromUser).forEach((fromUser: string) => { count[fromUser] = (count[fromUser] || 0) + 1 });
     let karmaDivided = Object.entries(count).map(([key, value]) => ({ name: key, value })); //: Math.round((value/karmaScore.count) * 100), count: value 
 
     // Count All Received Karma Points by Days
     let countIn: Record<string, number>;
-    activityChartIn.feed.map((d: { timestamp: { toISOString: () => string; }; }) => d.timestamp.toISOString().split('T')[0]).forEach((fromUser: string | number) => { countIn[fromUser] = (countIn[fromUser] || 0) + 1 });
+    activityChartIn.feed.map((d: KarmaFeed) => d.timestamp.toISOString().split('T')[0]).forEach((fromUser: string | number) => { countIn[fromUser] = (countIn[fromUser] || 0) + 1 });
     let chartDatesIn = Object.entries(countIn).map(([key, value]) => ({ date: key, received: value, sent: 0 }));
 
     // Count All Sent Karma Points by Days
     let countOut: Record<string, number>;
-    activityChartOut.feed.map((d: { timestamp: { toISOString: () => string; }; }) => d.timestamp.toISOString().split('T')[0]).forEach((fromUser: string | number) => { countOut[fromUser] = (countOut[fromUser] || 0) + 1 });
+    activityChartOut.feed.map((d: KarmaFeed) => d.timestamp.toISOString().split('T')[0]).forEach((fromUser: string | number) => { countOut[fromUser] = (countOut[fromUser] || 0) + 1 });
     let chartDatesOut = Object.entries(countOut).map(([key, value]) => ({ date: key, received: 0, sent: value }));
 
     // Add Sent & Received Karma by Days Into Array
