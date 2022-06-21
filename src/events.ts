@@ -17,7 +17,7 @@ import { checkChannel, checkUser, getDailyUserScore, updateScore, undoScore } fr
 import { getUserList, getUserName, sendEphemeral } from "./slack";
 
 
-const camelCase = require('lodash.camelcase');
+import camelCase from 'lodash.camelcase';
 
 const timeLimit = Math.floor(process.env.UNDO_TIME_LIMIT / 60);
 
@@ -281,5 +281,3 @@ export const handleEvent = (event: Event, request: Request): Promise<void | bool
   return false;
 
 }; // HandleEvent.
-
-export { };

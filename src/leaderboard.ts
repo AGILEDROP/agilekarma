@@ -5,7 +5,7 @@
 'use strict';
 
 
-const querystring = require("querystring");
+import querystring from "querystring";
 import { Item, Message, Score, UserScore } from '@types';
 import { Request } from 'express';
 import { isPlural, isUser, maybeLinkItem } from './helpers';
@@ -151,7 +151,7 @@ export const userScores = async (topScores: Score[]): Promise<UserScore[]> => {
  * Retrieves and sends the current partial leaderboard (top scores only) to the requesting Slack
  * channel.
  */
-export const getForSlack = async (event: { channel: string; user: string; }, request: Request): Promise<any> => {
+export const getForSlack = async (event: { channel: string; user: string; }, request: Request): Promise<void> => {
 
   try {
     const limit = 5;
@@ -329,17 +329,17 @@ export const getUserProfile = async (request: Request): Promise<any> => {
 
 
     // Count Karma Points from users
-    let count: (string | number)[] = [];
+    let count: Record<string, number>;
     karmaScore.feed.map((u: { fromUser: string; }) => u.fromUser).forEach((fromUser: number) => { count[fromUser] = (count[fromUser] || 0) + 1 });
     let karmaDivided = Object.entries(count).map(([key, value]) => ({ name: key, value })); //: Math.round((value/karmaScore.count) * 100), count: value 
 
     // Count All Received Karma Points by Days
-    let countIn: (string | number)[] = [];
+    let countIn: Record<string, number>;
     activityChartIn.feed.map((d: { timestamp: { toISOString: () => string; }; }) => d.timestamp.toISOString().split('T')[0]).forEach((fromUser: string | number) => { countIn[fromUser] = (countIn[fromUser] || 0) + 1 });
     let chartDatesIn = Object.entries(countIn).map(([key, value]) => ({ date: key, received: value, sent: 0 }));
 
     // Count All Sent Karma Points by Days
-    let countOut: (string | number)[] = [];
+    let countOut: Record<string, number>;
     activityChartOut.feed.map((d: { timestamp: { toISOString: () => string; }; }) => d.timestamp.toISOString().split('T')[0]).forEach((fromUser: string | number) => { countOut[fromUser] = (countOut[fromUser] || 0) + 1 });
     let chartDatesOut = Object.entries(countOut).map(([key, value]) => ({ date: key, received: 0, sent: value }));
 
@@ -381,5 +381,3 @@ export const getUserProfile = async (request: Request): Promise<any> => {
 export const handler = async (event: any, request: any): Promise<any> => {
   return getForSlack(event, request);
 };
-
-export { };

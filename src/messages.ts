@@ -7,10 +7,11 @@
 
 'use strict';
 
+import { Operation } from "@types";
 import { isPlural, maybeLinkItem } from "./helpers";
 import { operations } from "./operations";
 
-export const messages: any = {};
+export const messages: Record<string, Operation[]> = {};
 
 messages[operations.PLUS] = [
   {
@@ -135,9 +136,3 @@ export const getRandomMessage = (operation: string, item: any, score = 0): strin
 
 }; // GetRandomMessage.
 
-export { };
-
-module.exports = {
-  messages,
-  getRandomMessage
-};

@@ -4,7 +4,7 @@ import { ConnectionConfig } from "mysql";
 
 require('dotenv').config();
 
-const mysql = require('mysql');
+import mysql from 'mysql';
 
 const mysqlConfig: ConnectionConfig = {
   host: process.env.DATABASE_HOST,
@@ -93,5 +93,3 @@ const createUserTable = (): Promise<any> => {
 prepareDatabase().catch((reason) => {
   console.log(reason);
 });
-
-export { };

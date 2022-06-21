@@ -4,7 +4,7 @@
 import { ConnectionConfig } from "mysql";
 
 require('dotenv').config();
-const mysql = require('mysql');
+import mysql from 'mysql';
 
 const mysqlConfig: ConnectionConfig = {
   host: process.env.DATABASE_HOST,
@@ -34,7 +34,7 @@ const addUsername = (): Promise<any> => {
   return new Promise((resolve, reject) => {
     const db = mysql.createConnection(mysqlConfig);
     const str = "UPDATE user SET user_username = LOWER( REPLACE( user_name, ' ', '' ) ) WHERE (user_username = '' OR user_username IS NULL)";
-    const query = mysql.format(str);
+    const query = mysql.format(str, null);
 
     db.query(query, (err: string, result: string) => {
       if (err) {
@@ -50,5 +50,3 @@ const addUsername = (): Promise<any> => {
 prepareDatabase().catch((reason) => {
   console.log(reason);
 });
-
-export { };

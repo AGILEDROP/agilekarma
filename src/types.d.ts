@@ -9,8 +9,8 @@ declare global {
 }
 
 export interface Event {
-  type: string,
-  subtype: string,
+  type: string;
+  subtype: string;
   text: string;
   user: string;
   channel: string;
@@ -63,6 +63,11 @@ export interface User {
   is_bot: boolean;
   profile: Record<string, string>;
   name: string;
+}
+
+export interface Operation {
+  probability: number;
+  set: string[];
 }
 
 export type Nullable<T> = T | null;

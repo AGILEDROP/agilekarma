@@ -14,7 +14,7 @@ export const operations = {
  * Given a mathematical operation, returns the name of that operation.
  */
 export const getOperationName = (operation: string): string => {
-  let operationName: string | boolean = '';
+  let operationName: string;
 
   switch (operation) {
     case '+': operationName = operations.PLUS; break;

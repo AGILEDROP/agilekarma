@@ -177,5 +177,3 @@ export const render = async (templatePath: string, context = {}, request: { quer
   return Handlebars.compile(output)(Object.assign(defaults, context));
 
 }; // Render.
-
-export { };

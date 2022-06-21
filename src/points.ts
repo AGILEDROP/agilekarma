@@ -12,9 +12,9 @@
  import mysql, { ConnectionConfig } from 'mysql';
  import uuid from 'uuid';
  import { getChannelName, getUserName } from './slack';
- const scoresTableName = 'score';
  import moment from 'moment';
  
+ const scoresTableName = 'score';
  
  const mysqlConfig: ConnectionConfig = {
    host: process.env.DATABASE_HOST,
@@ -309,10 +309,10 @@
        'INNER JOIN user uTo ON score.to_user_id = uTo.user_id ' +
        'INNER JOIN user uFrom ON score.from_user_id = uFrom.user_id ' +
        searchForm +
-       'ORDER BY score.timestamp DESC LIMIT ' + itemsPerPage + ' OFFSET ' + (page - 1) * itemsPerPage;
+       'ORDER BY score.timestamp DESC LIMIT ' + itemsPerPage + ' OFFSET ' + (page - 1) * +itemsPerPage;
  
-     const query = mysql.format(str);
-     const queryCount = mysql.format(countScores);
+     const query = mysql.format(str, inserts);
+     const queryCount = mysql.format(countScores, inserts);
  
      const queryResult = db.query(query, (err: any, result: any) => {
  
@@ -502,7 +502,7 @@
      // OR uTo.user_name LIKE \'%' + searchString + '%\')
  
      if (itemsPerPage && page) {
-       paginationParams = 'LIMIT ' + itemsPerPage + ' OFFSET ' + (page - 1) * itemsPerPage;
+       paginationParams = 'LIMIT ' + itemsPerPage + ' OFFSET ' + (page - 1) * +itemsPerPage;
      }
  
      const countScores = 'SELECT COUNT(*) AS scores ' +
@@ -521,8 +521,8 @@
        'ORDER BY score.timestamp DESC ' +
        paginationParams;
  
-     const query = mysql.format(str);
-     const queryCount = mysql.format(countScores);
+     const query = mysql.format(str, null);
+     const queryCount = mysql.format(countScores, null);
  
      const queryResult = db.query(query, (err: any, result: any) => {
  
@@ -698,7 +698,7 @@
      const db = mysql.createConnection(mysqlConfig);
      let str = 'SELECT * FROM channel';
  
-     const query = mysql.format(str);
+     const query = mysql.format(str, null);
      db.query(query, (err: any, result: unknown) => {
        if (err) {
          console.log(db.sql);
