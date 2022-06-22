@@ -4,8 +4,8 @@
  * Simple logging of requests.
  */
 
-import { Request, Response } from 'express';
 import { handleEvent } from './events';
+import { Request, Response } from 'express';
 import {
   getAllScoresFromUser,
   getForChannels,

@@ -8,8 +8,8 @@
 'use strict';
 
 import { Operation } from "@types";
-import { isPlural, maybeLinkItem } from "./helpers";
 import { operations } from "./operations";
+import { isPlural, maybeLinkItem } from "./helpers";
 
 export const messages: Record<string, Operation[]> = {};
 

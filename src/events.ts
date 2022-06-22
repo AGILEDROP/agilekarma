@@ -7,17 +7,17 @@
 
 'use strict';
 
-import { Event, User } from "@types";
 import { Request } from "express";
-import { extractCommand, extractPlusMinusEventData, extractUserID } from "./helpers";
+import { Event, User } from "@types";
 import { handler } from "./leaderboard";
+import camelCase from 'lodash.camelcase';
 import { getRandomMessage } from "./messages";
 import { getOperationName, operations } from "./operations";
-import { checkChannel, checkUser, getDailyUserScore, updateScore, undoScore } from "./points";
 import { getUserList, getUserName, sendEphemeral } from "./slack";
+import { extractCommand, extractPlusMinusEventData, extractUserID } from "./helpers";
+import { checkChannel, checkUser, getDailyUserScore, updateScore, undoScore } from "./points";
 
 
-import camelCase from 'lodash.camelcase';
 
 const timeLimit = Math.floor(process.env.UNDO_TIME_LIMIT / 60);
 

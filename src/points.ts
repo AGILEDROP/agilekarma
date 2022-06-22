@@ -9,11 +9,11 @@
 
  'use strict';
 
- import mysql, { ConnectionConfig, MysqlError } from 'mysql';
  import uuid from 'uuid';
- import { getChannelName, getUserName } from './slack';
  import moment from 'moment';
-import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
+ import { getChannelName, getUserName } from './slack';
+ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
+ import { ConnectionConfig, MysqlError, format, createConnection } from 'mysql';
  
  const scoresTableName = 'score';
  
@@ -151,10 +151,10 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
   */
  const getUserScore = (item: string, channelId: string): Promise<{score: number}[]> => {
    return new Promise((resolve, reject) => {
-     const db = mysql.createConnection(mysqlConfig);
+     const db = createConnection(mysqlConfig);
      const inserts = ['score', scoresTableName, item, channelId];
      const str = 'SELECT COUNT(score_id) as ?? FROM ?? WHERE to_user_id = ? AND `channel_id` = ?';
-     const query = mysql.format(str, inserts);
+     const query = format(str, inserts);
      db.query(query, [scoresTableName, item], (err: MysqlError, result: {score: number}[]) => {
        if (err) {
          reject(err);
@@ -173,7 +173,7 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
   */
  const getAllScores = (startDate: string, endDate: string, channelId: string): Promise<TopScore[]> => {
    return new Promise((resolve, reject) => {
-     const db = mysql.createConnection(mysqlConfig);
+     const db = createConnection(mysqlConfig);
      let str = '';
      let start;
      let end;
@@ -207,7 +207,7 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
        str = 'SELECT to_user_id as item, COUNT(score_id) as score FROM `score` GROUP BY to_user_id ORDER BY score DESC';
      }
  
-     const query = mysql.format(str, inserts);
+     const query = format(str, inserts);
      db.query(query, (err: MysqlError, result: TopScore[]) => {
        if (err) {
          console.log(err.sql);
@@ -227,7 +227,7 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
   */
  export const getAllScoresFromUser = (startDate: string, endDate: string, channelId: string): Promise<Score[]> => {
    return new Promise((resolve, reject) => {
-     const db = mysql.createConnection(mysqlConfig);
+     const db = createConnection(mysqlConfig);
      let str = '';
      let start;
      let end;
@@ -244,7 +244,7 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
  
      str = 'SELECT to_user_id as item, ANY_VALUE(from_user_id) as from_user_id, channel_id, COUNT(score_id) as score FROM `score` WHERE `channel_id` = ? AND (`timestamp` > ? AND `timestamp` < ?) GROUP BY to_user_id ORDER BY score DESC';
  
-     const query = mysql.format(str, inserts);
+     const query = format(str, inserts);
      db.query(query, (err: MysqlError, result: Score[]) => {
        if (err) {
          console.log(err.sql);
@@ -262,7 +262,7 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
   */
  export const getKarmaFeed = (itemsPerPage: string | number, page: number, searchString: string, channelId: string, startDate: string, endDate: string): Promise<{ count: number, results: KarmaFeed[]}> => {
    return new Promise((resolve, reject) => {
-     const db = mysql.createConnection(mysqlConfig);
+     const db = createConnection(mysqlConfig);
  
      let start;
      let end;
@@ -312,8 +312,8 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
        searchForm +
        'ORDER BY score.timestamp DESC LIMIT ' + itemsPerPage + ' OFFSET ' + (page - 1) * +itemsPerPage;
  
-     const query = mysql.format(str, inserts);
-     const queryCount = mysql.format(countScores, inserts);
+     const query = format(str, inserts);
+     const queryCount = format(countScores, inserts);
  
      const queryResult = db.query(query, (err: MysqlError, result: KarmaFeed[]) => {
  
@@ -371,12 +371,12 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
  const insertScore = (toUserId: string, fromUserId: string, channelId: string, description: string = null): Promise<any> => {
  
    return new Promise((resolve, reject) => {
-     const db = mysql.createConnection(mysqlConfig);
+     const db = createConnection(mysqlConfig);
      // eslint-disable-next-line no-magic-numbers
      const ts = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
      const inserts = ['score', 'timestamp', uuid.v4(), ts, toUserId, fromUserId, channelId, description];
      const str = 'INSERT INTO ?? (score_id, ??, to_user_id, from_user_id, channel_id, description) VALUES (?,?,?,?,?,?);';
-     const query = mysql.format(str, inserts);
+     const query = format(str, inserts);
      db.query(query, (err: MysqlError, result: unknown) => {
        if (err) {
          console.log(err.sql);
@@ -396,10 +396,10 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
   */
  const getUser = (userId: string): Promise<{ user_id: string }[]> => {
    return new Promise((resolve, reject) => {
-     const db = mysql.createConnection(mysqlConfig);
+     const db = createConnection(mysqlConfig);
      const str = 'SELECT user_id FROM ?? WHERE user_id = ?';
      const inserts = ['user', userId];
-     const query = mysql.format(str, inserts);
+     const query = format(str, inserts);
      db.query(query, (err: MysqlError, result: { user_id: string }[]) => {
        console.log(result)
        if (err) {
@@ -420,10 +420,10 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
   */
  export const getName = (username: string): Promise<string> => {
    return new Promise((resolve, reject) => {
-     const db = mysql.createConnection(mysqlConfig);
+     const db = createConnection(mysqlConfig);
      const str = 'SELECT user_name FROM ?? WHERE user_username = ?';
      const inserts = ['user', username];
-     const query = mysql.format(str, inserts);
+     const query = format(str, inserts);
      db.query(query, (err: MysqlError, result: { user_name: string; }[]) => {
        if (err) {
          console.log(err.sql);
@@ -443,10 +443,10 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
   */
  export const getUserId = (username: string): Promise<string> => {
    return new Promise((resolve, reject) => {
-     const db = mysql.createConnection(mysqlConfig);
+     const db = createConnection(mysqlConfig);
      const str = 'SELECT user_id FROM ?? WHERE user_username = ?';
      const inserts = ['user', username];
-     const query = mysql.format(str, inserts);
+     const query = format(str, inserts);
      db.query(query, (err: MysqlError, result: { user_id: string; }[]) => {
        if (err) {
          console.log(err.sql);
@@ -466,7 +466,7 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
    const userId = await getUserId(username);
  
    return new Promise((resolve, reject) => {
-     const db = mysql.createConnection(mysqlConfig);
+     const db = createConnection(mysqlConfig);
  
      let whereUser = '';
      let paginationParams = '';
@@ -522,8 +522,8 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
        'ORDER BY score.timestamp DESC ' +
        paginationParams;
  
-     const query = mysql.format(str, null);
-     const queryCount = mysql.format(countScores, null);
+     const query = format(str, null);
+     const queryCount = format(countScores, null);
  
      const queryResult = db.query(query, (err: MysqlError, result: KarmaFeed[]) => {
  
@@ -554,11 +554,11 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
   */
  const insertUser = (userId: string, userName: string): Promise<any> => {
    return new Promise((resolve, reject) => {
-     const db = mysql.createConnection(mysqlConfig);
+     const db = createConnection(mysqlConfig);
      const lowcaseUserName = userName.split(" ").join("").toLocaleLowerCase();
      const str = 'INSERT INTO ?? (user_id, user_name, user_username, banned_until) VALUES (?, ?, ?, NULL);';
      const inserts = ['user', userId, userName, lowcaseUserName];
-     const query = mysql.format(str, inserts);
+     const query = format(str, inserts);
      db.query(query, (err: MysqlError, result: unknown) => {
        if (err) {
          console.log(err.sql);
@@ -578,10 +578,10 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
   */
  const getChannel = (channelId: string): Promise<{ channel_id: string }[]> => {
    return new Promise((resolve, reject) => {
-     const db = mysql.createConnection(mysqlConfig);
+     const db = createConnection(mysqlConfig);
      const str = 'SELECT channel_id FROM ?? WHERE channel_id = ?;';
      const inserts = ['channel', channelId];
-     const query = mysql.format(str, inserts);
+     const query = format(str, inserts);
      db.query(query, (err: MysqlError, result: { channel_id: string }[]) => {
        if (err) {
          console.log(err.sql);
@@ -601,10 +601,10 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
   */
  const insertChannel = (channelId: string, channelName: string): Promise<any> => {
    return new Promise((resolve, reject) => {
-     const db = mysql.createConnection(mysqlConfig);
+     const db = createConnection(mysqlConfig);
      const str = 'INSERT INTO ?? (channel_id, channel_name) VALUES (?, ?);';
      const inserts = ['channel', channelId, channelName];
-     const query = mysql.format(str, inserts);
+     const query = format(str, inserts);
      db.query(query, (err: MysqlError, result: unknown) => {
        if (err) {
          console.log(err.sql);
@@ -624,11 +624,11 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
   */
  const getLast = (fromUserId: string, channelId: string): Promise<GetLastScore[]> => {
    return new Promise((resolve, reject) => {
-   const db = mysql.createConnection(mysqlConfig);
+   const db = createConnection(mysqlConfig);
    const timestamp = moment(Date.now()).subtract(timeLimit, 'seconds').format('YYYY-MM-DD HH:mm:ss');
      const str = 'SELECT `score_id`, `timestamp` FROM `score` WHERE `from_user_id` = ? AND `timestamp` >= ? AND `channel_id` = ? ORDER BY `timestamp` DESC LIMIT 1;';
      const inserts = [fromUserId, timestamp, channelId];
-     const query = mysql.format(str, inserts);
+     const query = format(str, inserts);
      db.query(query, (err: MysqlError, result: GetLastScore[]) => {
        if (err) {
          console.log(err.sql);
@@ -648,10 +648,10 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
   */
  const removeLast = (scoreId: string): Promise<any> => {
    return new Promise((resolve, reject) => {
-     const db = mysql.createConnection(mysqlConfig);
+     const db = createConnection(mysqlConfig);
      const str = 'DELETE FROM `score` WHERE `score_id` = ?;';
      const inserts = [scoreId];
-     const query = mysql.format(str, inserts);
+     const query = format(str, inserts);
      db.query(query, (err: MysqlError, result: unknown) => {
        if (err) {
          console.log(err.sql);
@@ -673,10 +673,10 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
  
    return new Promise((resolve, reject) => {
      const date = moment(Date.now()).format('YYYY-MM-DD');
-     const db = mysql.createConnection(mysqlConfig);
+     const db = createConnection(mysqlConfig);
      const str = 'SELECT COUNT(score_id) as daily_votes from score where DATE(`timestamp`) = ? AND from_user_id = ?;';
      const inserts = [date, fromUserId];
-     const query = mysql.format(str, inserts);
+     const query = format(str, inserts);
      db.query(query, (err: MysqlError, result: {daily_votes: number}[]) => {
        if (err) {
          console.log(err.sql);
@@ -696,10 +696,10 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
   */
  export const getAllChannels = (): Promise<any> => {
    return new Promise((resolve, reject) => {
-     const db = mysql.createConnection(mysqlConfig);
+     const db = createConnection(mysqlConfig);
      let str = 'SELECT * FROM channel';
  
-     const query = mysql.format(str, null);
+     const query = format(str, null);
      db.query(query, (err: MysqlError, result: unknown) => {
        if (err) {
          console.log(err.sql);

@@ -1,9 +1,9 @@
 'use strict';
 
+import fs from "fs"
+import crypto from "crypto"
 import Handlebars from "handlebars";
 import { getUserName } from "./slack";
-import crypto from "crypto"
-import fs from "fs"
 import { Nullable, PlusMinusEventData } from "@types";
 
 const templates: Record<string, string> = {};

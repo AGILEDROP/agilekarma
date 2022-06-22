@@ -5,12 +5,20 @@
 'use strict';
 
 
-import querystring from "querystring";
-import { Item, Message, TopScore, UserScore, Score, KarmaFeed } from '@types';
 import { Request } from 'express';
+import querystring from "querystring";
 import { isPlural, isUser, maybeLinkItem } from './helpers';
-import { getAllChannels, getName, getUserId, retrieveTopScores, getAll, getAllScoresFromUser as getAllScoresFromUserPoints, getKarmaFeed as getKarmaFeedPoints } from './points';
 import { getChannelName, getUserName, sendEphemeral } from './slack';
+import { Item, Message, TopScore, UserScore, Score, KarmaFeed } from '@types';
+import { 
+  getAllChannels, 
+  getName, 
+  getUserId, 
+  retrieveTopScores, 
+  getAll, 
+  getAllScoresFromUser as getAllScoresFromUserPoints, 
+  getKarmaFeed as getKarmaFeedPoints 
+} from './points';
 
 /**
  * Gets the URL for the full leaderboard, including a token to ensure that it is only viewed by
