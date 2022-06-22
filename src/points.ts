@@ -9,7 +9,7 @@
 
  'use strict';
 
- import mysql, { ConnectionConfig } from 'mysql';
+ import mysql, { ConnectionConfig, MysqlError } from 'mysql';
  import uuid from 'uuid';
  import { getChannelName, getUserName } from './slack';
  import moment from 'moment';
@@ -25,7 +25,7 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
    database: process.env.DATABASE_NAME
  };
  
- const dbErrorHandler = (err: any) => err && console.log(err);
+ const dbErrorHandler = (err: MysqlError) => err && console.log(err);
  const votingLimit = process.env.USER_LIMIT_VOTING_MAX;
  const timeLimit = process.env.UNDO_TIME_LIMIT;
  
@@ -155,7 +155,7 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
      const inserts = ['score', scoresTableName, item, channelId];
      const str = 'SELECT COUNT(score_id) as ?? FROM ?? WHERE to_user_id = ? AND `channel_id` = ?';
      const query = mysql.format(str, inserts);
-     db.query(query, [scoresTableName, item], (err: any, result: {score: number}[]) => {
+     db.query(query, [scoresTableName, item], (err: MysqlError, result: {score: number}[]) => {
        if (err) {
          reject(err);
        } else {
@@ -208,9 +208,9 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
      }
  
      const query = mysql.format(str, inserts);
-     db.query(query, (err: any, result: TopScore[]) => {
+     db.query(query, (err: MysqlError, result: TopScore[]) => {
        if (err) {
-         console.log(db.sql);
+         console.log(err.sql);
          reject(err);
        } else {
          resolve(result);
@@ -245,9 +245,9 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
      str = 'SELECT to_user_id as item, ANY_VALUE(from_user_id) as from_user_id, channel_id, COUNT(score_id) as score FROM `score` WHERE `channel_id` = ? AND (`timestamp` > ? AND `timestamp` < ?) GROUP BY to_user_id ORDER BY score DESC';
  
      const query = mysql.format(str, inserts);
-     db.query(query, (err: any, result: Score[]) => {
+     db.query(query, (err: MysqlError, result: Score[]) => {
        if (err) {
-         console.log(db.sql);
+         console.log(err.sql);
          reject(err);
        } else {
          resolve(result);
@@ -315,17 +315,17 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
      const query = mysql.format(str, inserts);
      const queryCount = mysql.format(countScores, inserts);
  
-     const queryResult = db.query(query, (err: any, result: KarmaFeed[]) => {
+     const queryResult = db.query(query, (err: MysqlError, result: KarmaFeed[]) => {
  
        if (err) {
-         console.log(db.sql);
+         console.log(err.sql);
          reject(err);
        }
  
        db.query(queryCount, (errCount: any, resultCount: {scores: number}[]) => {
  
          if (errCount) {
-           console.log(db.sql);
+           console.log(err.sql);
            reject(errCount);
          }
  
@@ -377,9 +377,9 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
      const inserts = ['score', 'timestamp', uuid.v4(), ts, toUserId, fromUserId, channelId, description];
      const str = 'INSERT INTO ?? (score_id, ??, to_user_id, from_user_id, channel_id, description) VALUES (?,?,?,?,?,?);';
      const query = mysql.format(str, inserts);
-     db.query(query, (err: any, result: unknown) => {
+     db.query(query, (err: MysqlError, result: unknown) => {
        if (err) {
-         console.log(db.sql);
+         console.log(err.sql);
          reject(err);
        } else {
          resolve(result);
@@ -400,10 +400,10 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
      const str = 'SELECT user_id FROM ?? WHERE user_id = ?';
      const inserts = ['user', userId];
      const query = mysql.format(str, inserts);
-     db.query(query, (err: any, result: { user_id: string }[]) => {
+     db.query(query, (err: MysqlError, result: { user_id: string }[]) => {
        console.log(result)
        if (err) {
-         console.log(db.sql);
+         console.log(err.sql);
          reject(err);
        } else {
          resolve(result);
@@ -424,9 +424,9 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
      const str = 'SELECT user_name FROM ?? WHERE user_username = ?';
      const inserts = ['user', username];
      const query = mysql.format(str, inserts);
-     db.query(query, (err: any, result: { user_name: string; }[]) => {
+     db.query(query, (err: MysqlError, result: { user_name: string; }[]) => {
        if (err) {
-         console.log(db.sql);
+         console.log(err.sql);
          reject(err);
        } else {
          resolve(result[0].user_name);
@@ -447,9 +447,9 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
      const str = 'SELECT user_id FROM ?? WHERE user_username = ?';
      const inserts = ['user', username];
      const query = mysql.format(str, inserts);
-     db.query(query, (err: any, result: { user_id: string; }[]) => {
+     db.query(query, (err: MysqlError, result: { user_id: string; }[]) => {
        if (err) {
-         console.log(db.sql);
+         console.log(err.sql);
          reject(err);
        } else {
          resolve(result[0].user_id);
@@ -525,17 +525,17 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
      const query = mysql.format(str, null);
      const queryCount = mysql.format(countScores, null);
  
-     const queryResult = db.query(query, (err: any, result: KarmaFeed[]) => {
+     const queryResult = db.query(query, (err: MysqlError, result: KarmaFeed[]) => {
  
        if (err) {
-         console.log(db.sql);
+         console.log(err.sql);
          reject(err);
        }
  
        db.query(queryCount, (errCount: any, resultCount: { scores: number; }[]) => {
  
          if (errCount) {
-           console.log(db.sql);
+           console.log(err.sql);
            reject(errCount);
          }
  
@@ -559,9 +559,9 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
      const str = 'INSERT INTO ?? (user_id, user_name, user_username, banned_until) VALUES (?, ?, ?, NULL);';
      const inserts = ['user', userId, userName, lowcaseUserName];
      const query = mysql.format(str, inserts);
-     db.query(query, (err: any, result: unknown) => {
+     db.query(query, (err: MysqlError, result: unknown) => {
        if (err) {
-         console.log(db.sql);
+         console.log(err.sql);
          reject(err);
        } else {
          resolve(result);
@@ -582,9 +582,9 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
      const str = 'SELECT channel_id FROM ?? WHERE channel_id = ?;';
      const inserts = ['channel', channelId];
      const query = mysql.format(str, inserts);
-     db.query(query, (err: any, result: { channel_id: string }[]) => {
+     db.query(query, (err: MysqlError, result: { channel_id: string }[]) => {
        if (err) {
-         console.log(db.sql);
+         console.log(err.sql);
          reject(err);
        } else {
          resolve(result);
@@ -605,9 +605,9 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
      const str = 'INSERT INTO ?? (channel_id, channel_name) VALUES (?, ?);';
      const inserts = ['channel', channelId, channelName];
      const query = mysql.format(str, inserts);
-     db.query(query, (err: any, result: unknown) => {
+     db.query(query, (err: MysqlError, result: unknown) => {
        if (err) {
-         console.log(db.sql);
+         console.log(err.sql);
          reject(err);
        } else {
          resolve(result);
@@ -629,9 +629,9 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
      const str = 'SELECT `score_id`, `timestamp` FROM `score` WHERE `from_user_id` = ? AND `timestamp` >= ? AND `channel_id` = ? ORDER BY `timestamp` DESC LIMIT 1;';
      const inserts = [fromUserId, timestamp, channelId];
      const query = mysql.format(str, inserts);
-     db.query(query, (err: any, result: GetLastScore[]) => {
+     db.query(query, (err: MysqlError, result: GetLastScore[]) => {
        if (err) {
-         console.log(db.sql);
+         console.log(err.sql);
          reject(err);
        } else {
          resolve(result);
@@ -652,9 +652,9 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
      const str = 'DELETE FROM `score` WHERE `score_id` = ?;';
      const inserts = [scoreId];
      const query = mysql.format(str, inserts);
-     db.query(query, (err: any, result: unknown) => {
+     db.query(query, (err: MysqlError, result: unknown) => {
        if (err) {
-         console.log(db.sql);
+         console.log(err.sql);
          reject(err);
        } else {
          resolve(result);
@@ -677,9 +677,9 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
      const str = 'SELECT COUNT(score_id) as daily_votes from score where DATE(`timestamp`) = ? AND from_user_id = ?;';
      const inserts = [date, fromUserId];
      const query = mysql.format(str, inserts);
-     db.query(query, (err: any, result: {daily_votes: number}[]) => {
+     db.query(query, (err: MysqlError, result: {daily_votes: number}[]) => {
        if (err) {
-         console.log(db.sql);
+         console.log(err.sql);
          reject(err);
        } else {
          resolve(result);
@@ -700,9 +700,9 @@ import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
      let str = 'SELECT * FROM channel';
  
      const query = mysql.format(str, null);
-     db.query(query, (err: any, result: unknown) => {
+     db.query(query, (err: MysqlError, result: unknown) => {
        if (err) {
-         console.log(db.sql);
+         console.log(err.sql);
          reject(err);
        } else {
          resolve(result);
