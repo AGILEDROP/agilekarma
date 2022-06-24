@@ -355,7 +355,7 @@ export const getUserProfile = async (request: Request): Promise<any> => {
     let sentReceived = chartDatesIn.concat(chartDatesOut);
 
     // Combine Sent & Received Karma by Same Days
-    let b = {};
+    let b: Record<string, Record<string, string>> = {};
     let combineDates = [];
 
     for (let date in sentReceived) {
@@ -363,9 +363,19 @@ export const getUserProfile = async (request: Request): Promise<any> => {
       let oa = sentReceived[date];
       let ob = b[oa.date];
 
-      if (!ob) combineDates.push(ob = b[oa.date] = {});
+      if (!ob) {
+        b[oa.date] = {};
+        ob = b[oa.date];
+        combineDates.push(ob);
+      }
 
-      for (let k in oa) ob[k] = k === 'date' ? oa.date : (ob[k] || 0) + oa[k];
+      Object.keys(oa).forEach((k: keyof typeof oa) => {
+        if (k === 'date') {
+          ob[k] = oa.date;
+        } else {
+          ob[k] = ((+ob[k] || 0) + +oa[(k)]).toString();
+        }
+      })
 
     }
 

@@ -233,8 +233,8 @@
      let end;
  
      if ('undefined' !== typeof startDate || 'undefined' !== typeof endDate) {
-       start = moment.unix(startDate).format('YYYY-MM-DD HH:mm:ss');
-       end = moment.unix(endDate).format('YYYY-MM-DD HH:mm:ss');
+       start = moment.unix(+startDate).format('YYYY-MM-DD HH:mm:ss');
+       end = moment.unix(+endDate).format('YYYY-MM-DD HH:mm:ss');
      } else {
        start = moment(Date.now()).startOf('month').format('YYYY-MM-DD HH:mm:ss');
        end = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
@@ -276,8 +276,8 @@
      where_str += ')';
  
      if ('undefined' !== typeof startDate || 'undefined' !== typeof endDate) {
-       start = moment.unix(startDate).format('YYYY-MM-DD HH:mm:ss');
-       end = moment.unix(endDate).format('YYYY-MM-DD HH:mm:ss');
+       start = moment.unix(+startDate).format('YYYY-MM-DD HH:mm:ss');
+       end = moment.unix(+endDate).format('YYYY-MM-DD HH:mm:ss');
      } else {
        start = moment(Date.now()).startOf('month').format('YYYY-MM-DD HH:mm:ss');
        end = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
