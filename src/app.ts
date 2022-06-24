@@ -33,7 +33,7 @@ export const logRequest = (request: Request) => {
  *          an error response is not misinterpreted as truthy.
 
  */
-export const validateToken = (suppliedToken: string, serverToken: string) => {
+export const validateToken = (suppliedToken: string, serverToken: string): { error: number, message: string } => {
   // Sanity check for bad values on the server side - either empty, or still set to the default.
   if (!serverToken.trim() || serverToken === 'xxxxxxxxxxxxxxxxxxxxxxxx') {
     console.error('500 Internal server error - bad verification value');
@@ -53,14 +53,14 @@ export const validateToken = (suppliedToken: string, serverToken: string) => {
   }
 
   // If we get here, we're good to go!
-  return true;
+  return;
 }; // ValidateToken.
 
 /**
  * Handles GET requests to the app. At the moment this only really consists of an authenticated
  * view of the full leaderboard.
  */
-export const handleGet = async (request: Request, response: Response) => {
+export const handleGet = async (request: Request, response: Response): Promise<void> => {
   logRequest(request);
 
   switch (request.path.replace(/\/$/, '')) {
@@ -107,14 +107,14 @@ export const handleGet = async (request: Request, response: Response) => {
 /**
  * Handles POST requests to the app.
  */
-export const handlePost = (request: Request, response: Response) => {
+export const handlePost = (request: Request, response: Response): Promise<void> => {
   logRequest(request);
 
   // Respond to challenge sent by Slack during event subscription set up.
   if (request.body.challenge) {
     response.send(request.body.challenge);
     console.info('200 Challenge response sent');
-    return false;
+    return;
   }
 
   // Ensure the verification token in the incoming request is valid.
@@ -122,9 +122,9 @@ export const handlePost = (request: Request, response: Response) => {
     request.body.token,
     SLACK_VERIFICATION_TOKEN
   );
-  if (validation !== true) {
+  if (validation) {
     response.status(validation.error).send(validation.message);
-    return false;
+    return;
   }
 
   // Send back a 200 OK now so Slack doesn't get upset.
@@ -137,7 +137,7 @@ export const handlePost = (request: Request, response: Response) => {
   // @see https://api.slack.com/events-api#graceful_retries
   if (request.headers['x-slack-retry-num']) {
     console.log('Skipping Slack retry.');
-    return false;
+    return;
   }
 
   // Handle the event now. If the event is invalid, this will return false.

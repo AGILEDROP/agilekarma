@@ -168,7 +168,7 @@ export const sendHelp = async (event: { text: string; channel: string; user: str
 
 }; // SendHelp.
 
-export const handlers: Record<string, (event: Event, request?: Request) => Promise<void | boolean>> = {
+export const handlers: Record<string, (event: Event, request?: Request) => Promise<void>> = {
 
   /**
    * Handles standard incoming 'message' events sent from Slack.
@@ -180,7 +180,7 @@ export const handlers: Record<string, (event: Event, request?: Request) => Promi
     const data = extractPlusMinusEventData(event.text);
 
     if (!data) {
-      return false;
+      return;
     }
     
     const { item, operation, description } = data;
@@ -190,17 +190,17 @@ export const handlers: Record<string, (event: Event, request?: Request) => Promi
 
     if (userIsBot && 'undo' === operation) {
       undoPlus(event);
-      return false;
+      return;
     }
 
     if (!item || !operation || userIsBot) {
-      return false;
+      return;
     }
 
     // Bail if the user is trying to ++ themselves...
     if (item === event.user && '+' === operation) {
       handleSelfPlus(event.user, event.channel);
-      return false;
+      return;
     }
 
     // Otherwise, let's go!
@@ -247,12 +247,12 @@ export const handlers: Record<string, (event: Event, request?: Request) => Promi
  * Determines whether or not incoming events from Slack can be handled by this app, and if so,
  * passes the event off to its handler function.
  */
-export const handleEvent = (event: Event, request: Request): Promise<void | boolean> | boolean => {
+export const handleEvent = (event: Event, request: Request): Promise<void> => {
 
   // If the event has no type, something has gone wrong.
   if ('undefined' === typeof event.type) {
     console.warn('Event data missing');
-    return false;
+    return;
   }
 
   // If the event has a subtype, we don't support it.
@@ -262,13 +262,13 @@ export const handleEvent = (event: Event, request: Request): Promise<void | bool
   //       Because the 'help' output contains commands in it, that could look interesting!
   if ('undefined' !== typeof event.subtype) {
     console.warn('Unsupported event subtype: ' + event.subtype);
-    return false;
+    return;
   }
 
   // If there's no text with the event, there's not a lot we can do.
   if ('undefined' === typeof event.text || !event.text.trim()) {
     console.warn('Event text missing');
-    return false;
+    return;
   }
 
   // Providing we have a handler for the event, let's handle it!
@@ -278,6 +278,6 @@ export const handleEvent = (event: Event, request: Request): Promise<void | bool
   }
 
   console.warn('Invalid event received: ' + event.type);
-  return false;
+  return;
 
 }; // HandleEvent.
