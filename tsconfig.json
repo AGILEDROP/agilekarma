@@ -11,7 +11,7 @@
     "preserveConstEnums": true,
     "sourceMap": true,
     "paths": {
-      "@types": ["src/types.d.ts"]
+      "@types": ["src/types.d.ts", "node"]
     }
   },
   "files": ["index.ts"],

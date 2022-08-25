@@ -1,9 +1,20 @@
-import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, } from 'recharts';
+import React from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts";
 
-const ActivityChart = props => {
-
-  const data = props.feed && props.feed.map(el => { return el });
+const ActivityChart = (props: { feed: [] }) => {
+  const data =
+    props.feed &&
+    props.feed.map((el) => {
+      return el;
+    });
 
   return (
     <LineChart
@@ -17,10 +28,24 @@ const ActivityChart = props => {
       <YAxis />
       <Tooltip />
       <Legend />
-      <Line type="monotone" dataKey="received" stroke="#519548" activeDot={{ stroke: '#519548', strokeWidth: 2, r: 4 }} isAnimationActive={false} name={'Received'} />
-      <Line type="monotone" dataKey="sent" stroke="#26ADE4" activeDot={{ stroke: '#26ADE4', strokeWidth: 2, r: 4 }} isAnimationActive={false} name={'Sent'} />
+      <Line
+        type="monotone"
+        dataKey="received"
+        stroke="#519548"
+        activeDot={{ stroke: "#519548", strokeWidth: 2, r: 4 }}
+        isAnimationActive={false}
+        name={"Received"}
+      />
+      <Line
+        type="monotone"
+        dataKey="sent"
+        stroke="#26ADE4"
+        activeDot={{ stroke: "#26ADE4", strokeWidth: 2, r: 4 }}
+        isAnimationActive={false}
+        name={"Sent"}
+      />
     </LineChart>
   );
-}
+};
 
 export default ActivityChart;

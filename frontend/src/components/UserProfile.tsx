@@ -4,21 +4,31 @@ import axios from "axios";
 import ReactPaginate from "react-paginate";
 import { Input } from "reactstrap";
 
-import KarmaSentChart from './KarmaSentChart';
-import ActivityChart from './ActivityChart';
+import KarmaSentChart from "./KarmaSentChart";
+import ActivityChart from "./ActivityChart";
 
 import { BiArrowFromRight, BiArrowFromLeft } from "react-icons/bi";
 
 import _ from "lodash";
 
-const UserProfile = props => {
+interface getUserInterface {
+  nameSurname: string;
+  userRank: number;
+  allKarma: string;
+  karmaGiven: string;
+  feed: [];
+  karmaDivided: [];
+  activity: [];
+}
+
+const UserProfile = (props: { search: string }) => {
   let location = useLocation();
   const user_username = location.pathname.split("/")[2];
 
   const apiURL = process.env.REACT_APP_API_URL;
 
   const getUserURL = apiURL + "/userprofile" + location.search;
-  const [getUser, setGetUser] = useState();
+  const [getUser, setGetUser] = useState<getUserInterface>();
 
   const channelsURL = apiURL + "/channels" + location.search;
   const [listChannels, setListChannels] = useState();
@@ -33,7 +43,7 @@ const UserProfile = props => {
     currentPage: 0,
   });
 
-  const handlePageClick = async (e) => {
+  const handlePageClick = async (e: { selected: number }) => {
     const selectedPage = e.selected;
     const offset = selectedPage * pagination.perPage;
 
@@ -44,11 +54,9 @@ const UserProfile = props => {
         currentPage: selectedPage,
       };
     });
-
   };
 
   useEffect(() => {
-
     const getChannels = async () => {
       await axios
         .get(channelsURL)
@@ -58,12 +66,11 @@ const UserProfile = props => {
         .catch((err) => console.error(err.message));
     };
     getChannels();
-
-  },[channelsURL]);
+  }, [channelsURL]);
 
   const [searchValue, setSearchValue] = useState("");
   const debounce = useCallback(
-    _.debounce(_searchVal => {
+    _.debounce((_searchVal) => {
       handlePageClick({ selected: 0 });
       setSearchValue(_searchVal);
     }, 500),
@@ -75,9 +82,7 @@ const UserProfile = props => {
   }, [props.search]);
 
   useEffect(() => {
-
     const userProfile = async () => {
-
       await axios
         .get(getUserURL, {
           params: {
@@ -86,7 +91,7 @@ const UserProfile = props => {
             channelProfile: selectedChannel,
             itemsPerPage: pagination.perPage,
             page: pagination.currentPage + 1,
-            searchString: searchValue
+            searchString: searchValue,
           },
         })
         .then((res) => {
@@ -102,8 +107,13 @@ const UserProfile = props => {
         .catch((err) => console.error(err.message));
     };
     userProfile();
-
-  }, [pagination.currentPage, location.search, selectedChannel, fromTo, searchValue]);
+  }, [
+    pagination.currentPage,
+    location.search,
+    selectedChannel,
+    fromTo,
+    searchValue,
+  ]);
 
   return (
     <>
@@ -147,41 +157,49 @@ const UserProfile = props => {
               <div className="row">
                 <div className="col-6">
                   <h3>
-                    {getUser === undefined || getUser.length === 0
+                    {getUser === undefined || (getUser as any).length === 0
                       ? null
                       : getUser.nameSurname}
                   </h3>
                 </div>
                 <div className="col-3">
                   <Input
-                      type="select"
-                      name="select"
-                      id="exampleSelect"
-                      value={selectedChannel}
-                      onChange={(e) => setSelectedChannel(e.target.value)}
-                    >
-                      {listChannels ? (
-                        <option value={"all"}>All Channels</option>
-                      ) : null}
-                      {listChannels ? (
-                        listChannels.map((el, index) => (
+                    type="select"
+                    name="select"
+                    id="exampleSelect"
+                    value={selectedChannel}
+                    onChange={(e) => setSelectedChannel(e.target.value)}
+                  >
+                    {listChannels ? (
+                      <option value={"all"}>All Channels</option>
+                    ) : null}
+                    {listChannels ? (
+                      (listChannels as []).map(
+                        (
+                          el: {
+                            channel_name: string;
+                            channel_id: number;
+                          },
+                          index
+                        ) => (
                           <option key={index} value={el.channel_id}>
                             #{el.channel_name}
                           </option>
-                        ))
-                      ) : (
-                        <option>No Channels</option>
-                      )}
-                    </Input>
+                        )
+                      )
+                    ) : (
+                      <option>No Channels</option>
+                    )}
+                  </Input>
                 </div>
                 <div className="col-3">
                   <Input
-                      type="select"
-                      name="select"
-                      id="exampleSelect"
-                      value={fromTo}
-                      onChange={(e) => setFromTo(e.target.value)}
-                    >
+                    type="select"
+                    name="select"
+                    id="exampleSelect"
+                    value={fromTo}
+                    onChange={(e) => setFromTo(e.target.value)}
+                  >
                     <option value={"all"}>All Karma Points</option>
                     <option value={"from"}>Karma Points Received</option>
                     <option value={"to"}>Karma Points Sent</option>
@@ -191,53 +209,50 @@ const UserProfile = props => {
               <div className="row mt-5">
                 <div className="col-md-3"></div>
                 <div className="col-sm-4 col-md-2">
-                    <div className="score-item">
-                      Rank
-                      <br />
-                      <h3>{getUser === undefined ? null : getUser.userRank}</h3>
-                    </div>
+                  <div className="score-item">
+                    Rank
+                    <br />
+                    <h3>{getUser === undefined ? null : getUser.userRank}</h3>
                   </div>
-                  <div className="col-sm-4 col-md-2">
-                    <div className="score-item">
-                      Karma Received
-                      <br />
-                      <h3>{getUser === undefined ? null : getUser.allKarma}</h3>
-                    </div>
+                </div>
+                <div className="col-sm-4 col-md-2">
+                  <div className="score-item">
+                    Karma Received
+                    <br />
+                    <h3>{getUser === undefined ? null : getUser.allKarma}</h3>
                   </div>
-                  <div className="col-sm-4 col-md-2">
-                    <div className="score-item">
-                      Karma Sent
-                      <br />
-                      <h3>{getUser === undefined ? null : getUser.karmaGiven}</h3>
-                    </div>
+                </div>
+                <div className="col-sm-4 col-md-2">
+                  <div className="score-item">
+                    Karma Sent
+                    <br />
+                    <h3>{getUser === undefined ? null : getUser.karmaGiven}</h3>
                   </div>
-                  <div className="col-md-3"></div>
+                </div>
+                <div className="col-md-3"></div>
               </div>
               <div className="row mt-5">
                 <div className="col-sm-12 col-md-6">
-                    {getUser.feed.length === 0 ? 
-                    null 
-                    : 
+                  {getUser.feed.length === 0 ? null : (
                     <div className="score-item">
-                    
-                    {getUser.karmaDivided.length === 0 ? <div className="length0">No Points Received</div>
-                    :
-                    <>
-                      <h5>Points Received</h5>
-                      <KarmaSentChart karma={getUser.karmaDivided} />
-                    </>
-                    }
+                      {getUser.karmaDivided.length === 0 ? (
+                        <div className="length0">No Points Received</div>
+                      ) : (
+                        <>
+                          <h5>Points Received</h5>
+                          <KarmaSentChart karma={getUser.karmaDivided} />
+                        </>
+                      )}
                     </div>
-                    }
+                  )}
                 </div>
                 <div className="col-sm-12 col-md-6">
-                    {getUser.feed.length === 0 ? 
-                    null :
+                  {getUser.feed.length === 0 ? null : (
                     <div className="score-item">
-                    <h5>Activity</h5>
+                      <h5>Activity</h5>
                       <ActivityChart feed={getUser.activity} />
                     </div>
-                    }
+                  )}
                 </div>
               </div>
             </div>
@@ -285,42 +300,53 @@ const UserProfile = props => {
                     </thead>
                     <tbody>
                       {getUser &&
-                        getUser.feed.map((el, index) => (
-                          <tr key={index}>
-                            <td className="text-left">
-                              {el.fromUser === getUser.nameSurname ? (
-                                <div className="flex">
-                                  <BiArrowFromLeft
-                                    className="BiArrow BiArrow--To BiArrow--mr"
-                                    title="Karma Points You Sent"
-                                  />{" "}
-                                  {el.toUser}
-                                </div>
-                              ) : (
-                                <div className="flex">
-                                  <BiArrowFromRight
-                                    className="BiArrow BiArrow--From BiArrow--mr"
-                                    title="Karma Points You Received"
-                                  />{" "}
-                                  {el.fromUser}
-                                </div>
-                              )}
-                            </td>
-                            <td className="text-left description">
-                              {el.description}
-                            </td>
-                            <td className="text-left">#{el.channel_name}</td>
-                            <td className="text-left">
-                              {new Date(el.timestamp).toLocaleDateString(
-                                "en-gb"
-                              ) +
-                                " - " +
-                                new Date(el.timestamp).toLocaleTimeString(
-                                  "en-gb"
+                        getUser.feed.map(
+                          (
+                            el: {
+                              fromUser: string;
+                              toUser: string;
+                              description: string;
+                              channel_name: string;
+                              timestamp: Date;
+                            },
+                            index
+                          ) => (
+                            <tr key={index}>
+                              <td className="text-left">
+                                {el.fromUser === getUser.nameSurname ? (
+                                  <div className="flex">
+                                    <BiArrowFromLeft
+                                      className="BiArrow BiArrow--To BiArrow--mr"
+                                      title="Karma Points You Sent"
+                                    />{" "}
+                                    {el.toUser}
+                                  </div>
+                                ) : (
+                                  <div className="flex">
+                                    <BiArrowFromRight
+                                      className="BiArrow BiArrow--From BiArrow--mr"
+                                      title="Karma Points You Received"
+                                    />{" "}
+                                    {el.fromUser}
+                                  </div>
                                 )}
-                            </td>
-                          </tr>
-                        ))}
+                              </td>
+                              <td className="text-left description">
+                                {el.description}
+                              </td>
+                              <td className="text-left">#{el.channel_name}</td>
+                              <td className="text-left">
+                                {new Date(el.timestamp).toLocaleDateString(
+                                  "en-gb"
+                                ) +
+                                  " - " +
+                                  new Date(el.timestamp).toLocaleTimeString(
+                                    "en-gb"
+                                  )}
+                              </td>
+                            </tr>
+                          )
+                        )}
                     </tbody>
                   </table>
                 </div>
@@ -337,7 +363,7 @@ const UserProfile = props => {
                     pageRangeDisplayed={2}
                     onPageChange={handlePageClick}
                     containerClassName={"pagination justify-content-center"}
-                    subContainerClassName={"pages pagination"}
+                    // subContainerClassName={"pages pagination"}
                     activeClassName={"active"}
                     pageClassName={"page-item"}
                     pageLinkClassName={"page-link"}
