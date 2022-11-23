@@ -34,5 +34,4 @@ package-lock.json
 /frontend/yarn-debug.log*
 /frontend/yarn-error.log*
 
-/index.js
-/src/**/*.js
+/dist
