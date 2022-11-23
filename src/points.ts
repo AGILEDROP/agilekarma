@@ -14,31 +14,31 @@
  import { getChannelName, getUserName } from './slack';
  import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
  import { ConnectionConfig, MysqlError, format, createConnection } from 'mysql';
- 
+
  const scoresTableName = 'score';
- 
+
  const mysqlConfig: ConnectionConfig = {
    host: process.env.DATABASE_HOST,
-   port: process.env.DATABASE_PORT,
+   port: Number.parseInt(process.env.DATABASE_PORT, 10),
    user: process.env.DATABASE_USER,
    password: process.env.DATABASE_PASSWORD,
    database: process.env.DATABASE_NAME
  };
- 
+
  const dbErrorHandler = (err: MysqlError) => err && console.log(err);
  const votingLimit = process.env.USER_LIMIT_VOTING_MAX;
  const timeLimit = process.env.UNDO_TIME_LIMIT;
- 
- 
- 
+
+
+
  /**
   * Retrieves all scores from the database, ordered from highest to lowest per channel.
   */
- 
+
  export const retrieveTopScores = async (startDate: string, endDate: string, channelId: string): Promise<TopScore[]> => {
    return await getAllScores(startDate, endDate, channelId)
  };
- 
+
  /**
   * Updates the score of an item in the database. If the item doesn't yet exist, it will be inserted
   * into the database with an assumed initial score of 0.
@@ -52,7 +52,7 @@
       await insertScore(toUserId, fromUserId, channelId, description);
       const results = await getUserScore(toUserId, channelId)
       const result = results[0].score;
-      console.log(toUserId + ' now on ' + result);  
+      console.log(toUserId + ' now on ' + result);
       return result;
    } catch(err) {
       setImmediate(() => {
@@ -89,7 +89,7 @@
     })
   }
  };
- 
+
  /**
   * Gets the user score.
   */
@@ -105,8 +105,8 @@
     })
   }
  };
- 
- 
+
+
  export const checkUser = async (userId: string): Promise<string> => {
   try {
     const userName = await getUserName(userId);
@@ -116,7 +116,7 @@
     if (user === null) {
       await insertUser(userId, userName);
     }
-    
+
     return userId
   } catch (err) {
     setImmediate(() => {
@@ -124,7 +124,7 @@
     })
   }
  };
- 
+
  /**
   * Checks if channel exists in the db.
   */
@@ -145,7 +145,7 @@
     })
   }
  };
- 
+
  /**
   * Selects score for item.
   */
@@ -162,12 +162,12 @@
          resolve(result);
        }
      });
- 
+
      db.end(dbErrorHandler);
- 
+
    });
  }
- 
+
  /**
   * Retrieves all scores for leaderboard.
   */
@@ -178,13 +178,13 @@
      let start;
      let end;
      let inserts;
- 
+
      let channels = channelId.split(',');
- 
+
      let where_str = 'WHERE (';
      where_str += channels.map((x: string) => { return "`channel_id` = '" + x + "'" }).join(" OR ");
      where_str += ')';
- 
+
      if ('undefined' !== typeof startDate || 'undefined' !== typeof endDate) {
        start = moment.unix(Number(startDate)).format('YYYY-MM-DD HH:mm:ss');
        end = moment.unix(Number(endDate)).format('YYYY-MM-DD HH:mm:ss');
@@ -192,8 +192,8 @@
        start = moment(0).format('YYYY-MM-DD HH:mm:ss');
        end = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
      }
- 
- 
+
+
      if ('all' === channelId) {
        inserts = [start, end];
        str = 'SELECT to_user_id as item, COUNT(score_id) as score FROM `score` WHERE (`timestamp` > ? AND `timestamp` < ?) GROUP BY to_user_id ORDER BY score DESC';
@@ -206,7 +206,7 @@
      } else {
        str = 'SELECT to_user_id as item, COUNT(score_id) as score FROM `score` GROUP BY to_user_id ORDER BY score DESC';
      }
- 
+
      const query = format(str, inserts);
      db.query(query, (err: MysqlError, result: TopScore[]) => {
        if (err) {
@@ -216,12 +216,12 @@
          resolve(result);
        }
      });
- 
+
      db.end(dbErrorHandler);
- 
+
    });
  }
- 
+
  /**
   * Retrieves all scores from_user_id.
   */
@@ -231,7 +231,7 @@
      let str = '';
      let start;
      let end;
- 
+
      if ('undefined' !== typeof startDate || 'undefined' !== typeof endDate) {
        start = moment.unix(+startDate).format('YYYY-MM-DD HH:mm:ss');
        end = moment.unix(+endDate).format('YYYY-MM-DD HH:mm:ss');
@@ -239,11 +239,11 @@
        start = moment(Date.now()).startOf('month').format('YYYY-MM-DD HH:mm:ss');
        end = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
      }
- 
+
      const inserts = [channelId, start, end];
- 
+
      str = 'SELECT to_user_id as item, ANY_VALUE(from_user_id) as from_user_id, channel_id, COUNT(score_id) as score FROM `score` WHERE `channel_id` = ? AND (`timestamp` > ? AND `timestamp` < ?) GROUP BY to_user_id ORDER BY score DESC';
- 
+
      const query = format(str, inserts);
      db.query(query, (err: MysqlError, result: Score[]) => {
        if (err) {
@@ -255,26 +255,26 @@
      });
    });
  }
- 
- 
+
+
  /**
   * Retrieves all scores from_user_id
   */
  export const getKarmaFeed = (itemsPerPage: string | number, page: number, searchString: string, channelId: string, startDate: string, endDate: string): Promise<{ count: number, results: KarmaFeed[]}> => {
    return new Promise((resolve, reject) => {
      const db = createConnection(mysqlConfig);
- 
+
      let start;
      let end;
      let inserts;
      let searchForm = '';
- 
+
      let channels = channelId.split(',');
- 
+
      let where_str = 'WHERE (';
      where_str += channels.map((x: string) => { return "channel.channel_id = '" + x + "'" }).join(" OR ");
      where_str += ')';
- 
+
      if ('undefined' !== typeof startDate || 'undefined' !== typeof endDate) {
        start = moment.unix(+startDate).format('YYYY-MM-DD HH:mm:ss');
        end = moment.unix(+endDate).format('YYYY-MM-DD HH:mm:ss');
@@ -282,7 +282,7 @@
        start = moment(Date.now()).startOf('month').format('YYYY-MM-DD HH:mm:ss');
        end = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
      }
- 
+
      if ('all' === channelId && !searchString && channels.length === 1) {
        searchForm = 'WHERE (score.timestamp > \'' + start + '\' AND score.timestamp < \'' + end + '\') ';
      } else if ('all' === channelId && searchString && channels.length === 1) {
@@ -296,14 +296,14 @@
      } else if ('all' !== channelId && searchString) {
        searchForm = where_str + ' AND (score.timestamp > \'' + start + '\' AND score.timestamp < \'' + end + '\') AND uFrom.user_name LIKE \'%' + searchString + '%\' ';
      }
- 
+
      let countScores = 'SELECT COUNT(*) AS scores ' +
        'FROM score ' +
        'INNER JOIN channel ON score.channel_id = channel.channel_id ' +
        'INNER JOIN user uTo ON score.to_user_id = uTo.user_id ' +
        'INNER JOIN user uFrom ON score.from_user_id = uFrom.user_id ' +
        searchForm;
- 
+
      let str = 'SELECT score.timestamp, uTo.user_name as toUser, uFrom.user_name as fromUser, channel.channel_name, score.description ' +
        'FROM score ' +
        'INNER JOIN channel ON score.channel_id = channel.channel_id ' +
@@ -311,36 +311,36 @@
        'INNER JOIN user uFrom ON score.from_user_id = uFrom.user_id ' +
        searchForm +
        'ORDER BY score.timestamp DESC LIMIT ' + itemsPerPage + ' OFFSET ' + (page - 1) * +itemsPerPage;
- 
+
      const query = format(str, inserts);
      const queryCount = format(countScores, inserts);
- 
+
      const queryResult = db.query(query, (err: MysqlError, result: KarmaFeed[]) => {
- 
+
        if (err) {
          console.log(err.sql);
          reject(err);
        }
- 
+
        db.query(queryCount, (errCount: any, resultCount: {scores: number}[]) => {
- 
+
          if (errCount) {
            console.log(err.sql);
            reject(errCount);
          }
- 
+
          resolve({ count: resultCount[0].scores, results: result });
- 
+
          db.end(dbErrorHandler);
- 
+
        });
- 
+
      });
- 
+
    });
  }
- 
- 
+
+
  /**
   * Gets the count of user scores for day.
   */
@@ -364,12 +364,12 @@
      };
    }
  };
- 
+
  /**
   * Inserts or updates score for item.
   */
  const insertScore = (toUserId: string, fromUserId: string, channelId: string, description: string = null): Promise<any> => {
- 
+
    return new Promise((resolve, reject) => {
      const db = createConnection(mysqlConfig);
      // eslint-disable-next-line no-magic-numbers
@@ -385,12 +385,12 @@
          resolve(result);
        }
      });
- 
+
      db.end(dbErrorHandler);
- 
+
    });
  }
- 
+
  /**
   *  Gets the user from the db.
   */
@@ -409,12 +409,12 @@
          resolve(result);
        }
      });
- 
+
      db.end(dbErrorHandler);
- 
+
    });
  }
- 
+
  /**
   *  Gets the Name from 'username' from the db.
   */
@@ -432,12 +432,12 @@
          resolve(result[0].user_name);
        }
      });
- 
+
      db.end(dbErrorHandler);
- 
+
    });
  }
- 
+
  /**
   *  Gets the Name from 'username' from the db.
   */
@@ -455,22 +455,22 @@
          resolve(result[0].user_id);
        }
      });
- 
+
      db.end(dbErrorHandler);
- 
+
    });
  }
- 
+
  export const getAll = async (username?: string, fromTo?: string, channel?: string, itemsPerPage?: string | number, page?: number, searchString?: string): Promise<{count: number, feed: KarmaFeed[]}> => {
- 
+
    const userId = await getUserId(username);
- 
+
    return new Promise((resolve, reject) => {
      const db = createConnection(mysqlConfig);
- 
+
      let whereUser = '';
      let paginationParams = '';
- 
+
      if (fromTo === 'from') {
        if (channel === 'all' || undefined === channel) {
          whereUser = 'WHERE to_user_id = \'' + userId + '\'';
@@ -496,23 +496,23 @@
          whereUser = 'WHERE (to_user_id = \'' + userId + '\' OR from_user_id = \'' + userId + '\') AND channel.channel_id = \'' + channel + '\'';
        }
      }
- 
+
      if (searchString) {
        whereUser += ' AND (uFrom.user_name LIKE \'%' + searchString + '%\' OR uTo.user_name LIKE \'%' + searchString + '%\') ';
      }
      // OR uTo.user_name LIKE \'%' + searchString + '%\')
- 
+
      if (itemsPerPage && page) {
        paginationParams = 'LIMIT ' + itemsPerPage + ' OFFSET ' + (page - 1) * +itemsPerPage;
      }
- 
+
      const countScores = 'SELECT COUNT(*) AS scores ' +
        'FROM score ' +
        'INNER JOIN channel ON score.channel_id = channel.channel_id ' +
        'INNER JOIN user uTo ON score.to_user_id = uTo.user_id ' +
        'INNER JOIN user uFrom ON score.from_user_id = uFrom.user_id ' +
        whereUser;
- 
+
      const str = 'SELECT score.timestamp, uTo.user_name as toUser, uFrom.user_name as fromUser, channel.channel_name, score.description ' +
        'FROM score ' +
        'INNER JOIN channel ON score.channel_id = channel.channel_id ' +
@@ -521,34 +521,34 @@
        whereUser +
        'ORDER BY score.timestamp DESC ' +
        paginationParams;
- 
+
      const query = format(str, null);
      const queryCount = format(countScores, null);
- 
+
      const queryResult = db.query(query, (err: MysqlError, result: KarmaFeed[]) => {
- 
+
        if (err) {
          console.log(err.sql);
          reject(err);
        }
- 
+
        db.query(queryCount, (errCount: any, resultCount: { scores: number; }[]) => {
- 
+
          if (errCount) {
            console.log(err.sql);
            reject(errCount);
          }
- 
+
          resolve({ count: resultCount[0].scores, feed: result });
          db.end(dbErrorHandler);
- 
+
        });
- 
+
      });
- 
+
    });
  }
- 
+
  /**
   * Inserts user into db.
   */
@@ -567,12 +567,12 @@
          resolve(result);
        }
      });
- 
+
      db.end(dbErrorHandler);
- 
+
    });
  }
- 
+
  /**
   * Gets the channel from db.
   */
@@ -590,12 +590,12 @@
          resolve(result);
        }
      });
- 
+
      db.end(dbErrorHandler);
- 
+
    });
  }
- 
+
  /**
   * Inserts channel into db.
   */
@@ -613,12 +613,12 @@
          resolve(result);
        }
      });
- 
+
      db.end(dbErrorHandler);
- 
+
    });
  }
- 
+
  /**
   * Gets the last score record for user per channel.
   */
@@ -637,12 +637,12 @@
          resolve(result);
        }
      });
- 
+
      db.end(dbErrorHandler);
- 
+
    });
  }
- 
+
  /**
   * Removes score record from db.
   */
@@ -660,17 +660,17 @@
          resolve(result);
        }
      });
- 
+
      db.end(dbErrorHandler);
- 
+
    });
  }
- 
+
  /**
   * Gets the count of daily scores by user.
   */
  const getDayilyVotesByUser = (fromUserId: string): Promise<{daily_votes: number}[]> => {
- 
+
    return new Promise((resolve, reject) => {
      const date = moment(Date.now()).format('YYYY-MM-DD');
      const db = createConnection(mysqlConfig);
@@ -685,12 +685,12 @@
          resolve(result);
        }
      });
- 
+
      db.end(dbErrorHandler);
- 
+
    });
  }
- 
+
  /**
   * Retrieves all channels for leaderboard.
   */
@@ -698,7 +698,7 @@
    return new Promise((resolve, reject) => {
      const db = createConnection(mysqlConfig);
      let str = 'SELECT * FROM channel';
- 
+
      const query = format(str, null);
      db.query(query, (err: MysqlError, result: unknown) => {
        if (err) {
@@ -708,8 +708,8 @@
          resolve(result);
        }
      });
- 
+
      db.end(dbErrorHandler);
- 
+
    });
  }

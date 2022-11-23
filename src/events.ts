@@ -19,7 +19,7 @@ import { checkChannel, checkUser, getDailyUserScore, updateScore, undoScore } fr
 
 
 
-const timeLimit = Math.floor(process.env.UNDO_TIME_LIMIT / 60);
+const timeLimit = Math.floor(Number.parseInt(process.env.UNDO_TIME_LIMIT, 10) / 60);
 
 /**
  * Handles an attempt by a user to 'self plus' themselves, which includes both logging the attempt
@@ -182,7 +182,7 @@ export const handlers: Record<string, (event: Event, request?: Request) => Promi
     if (!data) {
       return;
     }
-    
+
     const { item, operation, description } = data;
 
     const userList = await getUserList();

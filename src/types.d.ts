@@ -1,9 +1,9 @@
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
-      UNDO_TIME_LIMIT: number;
+      UNDO_TIME_LIMIT: string;
       SLACK_VERIFICATION_TOKEN: string;
-      DATABASE_PORT: number;
+      DATABASE_PORT: string;
     }
   }
 }
