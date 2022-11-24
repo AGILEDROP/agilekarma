@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
   traefik:
@@ -6,8 +6,8 @@ services:
     container_name: ${PROJECT_NAME}_traefik
     command: --docker
     ports:
-      - '80:80'
-      - '443:443'
+      - "80:80"
+      - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml
@@ -15,8 +15,8 @@ services:
     networks:
       - proxy
     labels:
-      - 'traefik.frontend.rule=Host:monitor.localhost'
-      - 'traefik.port=8080'
+      - "traefik.frontend.rule=Host:monitor.localhost"
+      - "traefik.port=8080"
 
   nodejs:
     image: node:10
@@ -27,18 +27,18 @@ services:
       SCOREBOT_LEADERBOARD_URL: "fe.${PROJECT_NAME}.localhost"
     env_file:
       - .env
-    command: 'node --inspect=0.0.0.0 index.js'
+    command: "node --inspect=0.0.0.0 index.js"
     restart: unless-stopped
     depends_on:
       - mysql
     volumes:
       - ../:/app
     labels:
-      - 'traefik.docker.network=proxy'
+      - "traefik.docker.network=proxy"
       - "traefik.one.frontend.rule=Host:${PROJECT_NAME}.localhost,www.${PROJECT_NAME}.localhost"
       - "traefik.one.port=${SCOREBOT_PORT}"
     ports:
-      - '9229:9229'
+      - "9229:9229"
     networks:
       - proxy
       - default
@@ -49,7 +49,7 @@ services:
     container_name: ${PROJECT_NAME}_frontend
     environment:
       REACT_APP_API_URL: "https://${PROJECT_NAME}.localhost"
-    command: 'yarn start'
+    command: "yarn start"
     tty: true
     restart: unless-stopped
     depends_on:
@@ -58,7 +58,7 @@ services:
       - ../frontend:/app
     labels:
       - "traefik.frontend.rule=Host:fe.${PROJECT_NAME}.localhost,www.fe.${PROJECT_NAME}.localhost"
-      - 'traefik.docker.network=proxy'
+      - "traefik.docker.network=proxy"
       - "traefik.port=3000"
     networks:
       - proxy
@@ -76,7 +76,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
       MYSQL_PORT: ${DATABASE_PORT}
     ports:
-      - 33061:${DATABASE_PORT}
+      - 33062:${DATABASE_PORT}
     volumes:
       - scorebotmysql:/var/lib/mysql
     networks:
@@ -88,7 +88,7 @@ services:
     container_name: ${PROJECT_NAME}_phpmyadmin
     labels:
       - "traefik.frontend.rule=Host:pma.${PROJECT_NAME}.localhost"
-      - 'traefik.docker.network=proxy'
+      - "traefik.docker.network=proxy"
     environment:
       UPLOAD_SIZE: 64M
     networks:
@@ -102,8 +102,8 @@ services:
       - nodejs
     labels:
       - "traefik.frontend.rule=Host:ngrok.${PROJECT_NAME}.localhost"
-      - 'traefik.docker.network=proxy'
-      - 'traefik.port=4040'
+      - "traefik.docker.network=proxy"
+      - "traefik.port=4040"
     environment:
       - NGROK_LOOK_DOMAIN=nodejs
       - NGROK_PORT=${SCOREBOT_PORT}
