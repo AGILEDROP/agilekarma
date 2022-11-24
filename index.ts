@@ -3,16 +3,17 @@
  * Like plusplus.chat, but one that actually works, because you can host it yourself! 😉
  */
 
-import { handleGet, handlePost } from 'src/app';
-import { setSlackClient } from 'src/slack';
-
-require('dotenv').config();
-
+import { handleGet, handlePost } from './src/app.js';
+import { setSlackClient } from './src/slack.js';
+import * as dotenv from 'dotenv';
 import fs from 'fs';
 import mime from 'mime';
 import express, { Express, Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import slackClient from '@slack/client';
+
+dotenv.config();
+
 
 const PORT = process.env.SCOREBOT_PORT || 80;
 const SLACK_OAUTH_ACCESS_TOKEN = process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN;
@@ -26,9 +27,9 @@ const FRONTEND_URL = protocol + frontendUrl;
 
 const bootstrap = (options?: { express: Express; slack: any }) => {
   // Allow alternative implementations of both Express and Slack to be passed in.
-  const server = options.express || express();
+  const server = options?.express || express();
   setSlackClient(
-    options.slack || new slackClient.WebClient(SLACK_OAUTH_ACCESS_TOKEN)
+    options?.slack || new slackClient.WebClient(SLACK_OAUTH_ACCESS_TOKEN)
   );
 
   server.use((req: Request, res: Response, next: () => void) => {
@@ -72,11 +73,4 @@ const bootstrap = (options?: { express: Express; slack: any }) => {
   });
 }; // Bootstrap.
 
-// If module was called directly, bootstrap now.
-if (require.main === module) {
-  bootstrap();
-}
-
-export {};
-
-module.exports = bootstrap;
+bootstrap();

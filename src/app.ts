@@ -4,7 +4,7 @@
  * Simple logging of requests.
  */
 
-import { handleEvent } from './events';
+import { handleEvent } from './events.js';
 import { Request, Response } from 'express';
 import {
   getAllScoresFromUser,
@@ -12,7 +12,7 @@ import {
   getForWeb,
   getKarmaFeed,
   getUserProfile,
-} from './leaderboard';
+} from './leaderboard.js';
 
 const { SLACK_VERIFICATION_TOKEN } = process.env;
 

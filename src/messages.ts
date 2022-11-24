@@ -8,8 +8,8 @@
 'use strict';
 
 import { Operation } from "@types";
-import { operations } from "./operations";
-import { isPlural, maybeLinkItem } from "./helpers";
+import { operations } from "./operations.js";
+import { isPlural, maybeLinkItem } from "./helpers.js";
 
 export const messages: Record<string, Operation[]> = {};
 
@@ -135,4 +135,3 @@ export const getRandomMessage = (operation: string, item: any, score = 0): strin
   return formattedMessage;
 
 }; // GetRandomMessage.
-

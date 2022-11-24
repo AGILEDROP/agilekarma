@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
-    "module": "ES2020",
-    "allowSyntheticDefaultImports": true,
-    "target": "es6",
-    "baseUrl": ".",
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "target": "ESNext",
+    "baseUrl": "./",
+    "rootDir": ".",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
     "lib": ["es2017"],
     "noImplicitAny": true,
     "removeComments": true,
@@ -16,6 +17,6 @@
     "outDir": "./dist"
   },
   "files": ["index.ts"],
-  "include": ["src/**/*.ts", "src/events.ts"],
-  "exclude": ["node_modules", "**/*.spec.ts"]
+  "include": ["src/**/*.ts", "src/*.ts"],
+  "exclude": ["**/*.spec.ts"]
 }

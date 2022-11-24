@@ -3,7 +3,7 @@
 import fs from "fs"
 import crypto from "crypto"
 import Handlebars from "handlebars";
-import { getUserName } from "./slack";
+import { getUserName } from "./slack.js";
 import { Nullable, PlusMinusEventData } from "@types";
 
 const templates: Record<string, string> = {};

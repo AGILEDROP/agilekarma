@@ -7,18 +7,18 @@
 
 import { Request } from 'express';
 import querystring from "querystring";
-import { isPlural, isUser, maybeLinkItem } from './helpers';
-import { getChannelName, getUserName, sendEphemeral } from './slack';
+import { isPlural, isUser, maybeLinkItem } from './helpers.js';
+import { getChannelName, getUserName, sendEphemeral } from './slack.js';
 import { Item, Message, TopScore, UserScore, Score, KarmaFeed } from '@types';
-import { 
-  getAllChannels, 
-  getName, 
-  getUserId, 
-  retrieveTopScores, 
-  getAll, 
-  getAllScoresFromUser as getAllScoresFromUserPoints, 
-  getKarmaFeed as getKarmaFeedPoints 
-} from './points';
+import {
+  getAllChannels,
+  getName,
+  getUserId,
+  retrieveTopScores,
+  getAll,
+  getAllScoresFromUser as getAllScoresFromUserPoints,
+  getKarmaFeed as getKarmaFeedPoints
+} from './points.js';
 
 /**
  * Gets the URL for the full leaderboard, including a token to ensure that it is only viewed by
@@ -339,7 +339,7 @@ export const getUserProfile = async (request: Request): Promise<any> => {
     // Count Karma Points from users
     let count: Record<string, number>;
     karmaScore.feed.map((u: KarmaFeed) => u.fromUser).forEach((fromUser: string) => { count[fromUser] = (count[fromUser] || 0) + 1 });
-    let karmaDivided = Object.entries(count).map(([key, value]) => ({ name: key, value })); //: Math.round((value/karmaScore.count) * 100), count: value 
+    let karmaDivided = Object.entries(count).map(([key, value]) => ({ name: key, value })); //: Math.round((value/karmaScore.count) * 100), count: value
 
     // Count All Received Karma Points by Days
     let countIn: Record<string, number>;

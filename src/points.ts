@@ -9,9 +9,9 @@
 
  'use strict';
 
- import uuid from 'uuid';
+ import * as uuid from 'uuid';
  import moment from 'moment';
- import { getChannelName, getUserName } from './slack';
+ import { getChannelName, getUserName } from './slack.js';
  import {GetLastScore, KarmaFeed, Score, TopScore } from '@types';
  import { ConnectionConfig, MysqlError, format, createConnection } from 'mysql';
 

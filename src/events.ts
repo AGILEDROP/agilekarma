@@ -9,13 +9,13 @@
 
 import { Request } from "express";
 import { Event, User } from "@types";
-import { handler } from "./leaderboard";
+import { handler } from "./leaderboard.js";
 import camelCase from 'lodash.camelcase';
-import { getRandomMessage } from "./messages";
-import { getOperationName, operations } from "./operations";
-import { getUserList, getUserName, sendEphemeral } from "./slack";
-import { extractCommand, extractPlusMinusEventData, extractUserID } from "./helpers";
-import { checkChannel, checkUser, getDailyUserScore, updateScore, undoScore } from "./points";
+import { getRandomMessage } from "./messages.js";
+import { getOperationName, operations } from "./operations.js";
+import { getUserList, getUserName, sendEphemeral } from "./slack.js";
+import { extractCommand, extractPlusMinusEventData, extractUserID } from "./helpers.js";
+import { checkChannel, checkUser, getDailyUserScore, updateScore, undoScore } from "./points.js";
 
 
 
