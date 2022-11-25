@@ -9,6 +9,7 @@
   "scripts": {
     "build": "./node_modules/.bin/tsc",
     "serve": "node ./dist/index.js",
+    "dev": "nodemon",
     "lint": "./node_modules/.bin/eslint . --ext .ts",
     "test": "jest --forceExit --runInBand",
     "unit-tests": "SKIP_INTEGRATION_TESTS=true SKIP_E2E_TESTS=true jest --forceExit",
@@ -60,8 +61,10 @@
     "jest": "^23.4.2",
     "jest-chain": "^1.0.3",
     "jest-extended": "^0.11.5",
+    "nodemon": "^2.0.20",
     "object-assign-deep": "^0.4.0",
     "prettier": "^2.6.2",
+    "ts-node": "^10.9.1",
     "typescript": "^4.6.4"
   }
 }
