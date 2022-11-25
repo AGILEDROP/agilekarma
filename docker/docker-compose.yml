@@ -19,7 +19,7 @@ services:
       - 'traefik.port=8080'
 
   nodejs:
-    image: node:10
+    image: node:16
     working_dir: /app
     container_name: ${PROJECT_NAME}_nodejs
     environment:
@@ -27,7 +27,12 @@ services:
       SCOREBOT_LEADERBOARD_URL: "fe.${PROJECT_NAME}.localhost"
     env_file:
       - .env
-    command: 'node --inspect=0.0.0.0 index.js'
+    command:
+      - /bin/bash
+      - -c
+      - |
+        /usr/local/bin/yarn build
+        /usr/local/bin/yarn serve
     restart: unless-stopped
     depends_on:
       - mysql
