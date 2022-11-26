@@ -4,12 +4,9 @@
  * TODO: Add the ability to customise these messages - probably via JSON objects in environment
  *       variables.
  */
-
-'use strict';
-
-import { Operation } from "@types";
-import { operations } from "./operations.js";
-import { isPlural, maybeLinkItem } from "./helpers.js";
+import type { Operation } from '@types';
+import { operations } from './operations.js';
+import { isPlural, maybeLinkItem } from './helpers.js';
 
 export const messages: Record<string, Operation[]> = {};
 
@@ -32,13 +29,13 @@ messages[operations.PLUS] = [
       'Well, well!',
       'Well played.',
       'Sincerest congratulations.',
-      'Delicious.'
-    ]
+      'Delicious.',
+    ],
   },
   {
     probability: 1,
-    set: [':shifty:']
-  }
+    set: [':shifty:'],
+  },
 ];
 
 messages[operations.MINUS] = [
@@ -52,13 +49,13 @@ messages[operations.MINUS] = [
       'Ouch.',
       'Oh là là.',
       'Oh.',
-      'Condolences.'
-    ]
+      'Condolences.',
+    ],
   },
   {
     probability: 1,
-    set: [':shifty:']
-  }
+    set: [':shifty:'],
+  },
 ];
 
 messages[operations.SELF] = [
@@ -68,20 +65,19 @@ messages[operations.SELF] = [
       'Hahahahahahaha no.',
       'Nope.',
       'No. Just no.',
-      'Not cool!'
-    ]
+      'Not cool!',
+    ],
   },
   {
     probability: 1,
-    set: [':shifty:']
-  }
+    set: [':shifty:'],
+  },
 ];
 
 /**
  * Retrieves a random message from the given pool of messages.
  */
 export const getRandomMessage = (operation: string, item: any, score = 0): string => {
-
   const messageSets = messages[operation];
   let format = '';
 
@@ -96,42 +92,36 @@ export const getRandomMessage = (operation: string, item: any, score = 0): strin
       break;
 
     default:
-      throw Error('Invalid operation: ' + operation);
+      throw Error(`Invalid operation: ${operation}`);
   }
 
   let totalProbability = 0;
-  for (const set of messageSets) {
-    totalProbability += set.probability;
-  }
+  messageSets.forEach((messageSet) => {
+    totalProbability += messageSet.probability;
+  });
 
-  let chosenSet = null,
-    setRandom = Math.floor(Math.random() * totalProbability);
+  let chosenSet = null;
+  let setRandom = Math.floor(Math.random() * totalProbability);
+  for (let i = 0; i < messageSets.length; i += 1) {
+    setRandom -= messageSets[i].probability;
 
-  for (const set of messageSets) {
-    setRandom -= set.probability;
-
-    if (0 > setRandom) {
-      chosenSet = set.set;
+    if (setRandom < 0) {
+      chosenSet = messageSets[i].set;
       break;
     }
   }
 
-  if (null === chosenSet) {
-    throw Error(
-      'Could not find set for ' + operation + ' (ran out of sets with ' + setRandom + ' remaining)'
-    );
+  if (chosenSet === null) {
+    throw Error(`Could not find set for ${operation} (ran out of sets with ${setRandom} remaining)`);
   }
 
-  const plural = isPlural(score) ? 's' : '',
-    max = chosenSet.length - 1,
-    random = Math.floor(Math.random() * max),
-    message = chosenSet[random];
+  const plural = isPlural(score) ? 's' : '';
+  const max = chosenSet.length - 1;
+  const random = Math.floor(Math.random() * max);
+  const message = chosenSet[random];
 
-  const formattedMessage = format.replace('<item>', maybeLinkItem(item))
+  return format.replace('<item>', maybeLinkItem(item))
     .replace('<score>', score.toString())
     .replace('<plural>', plural)
     .replace('<message>', message);
-
-  return formattedMessage;
-
-}; // GetRandomMessage.
+};
