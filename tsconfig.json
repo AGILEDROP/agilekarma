@@ -4,6 +4,7 @@
     "target": "ESNext",
     "baseUrl": "./",
     "rootDir": ".",
+    "importsNotUsedAsValues": "error",
     "moduleResolution": "NodeNext",
     "esModuleInterop": true,
     "strict": true,
