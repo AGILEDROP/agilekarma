@@ -1,13 +1,10 @@
 /**
  * Provides constants and supporting functions for operations.
  */
-
-'use strict';
-
 export const operations = {
   PLUS: 'plus',
   MINUS: 'minus',
-  SELF: 'selfPlus'
+  SELF: 'selfPlus',
 };
 
 /**
@@ -17,10 +14,18 @@ export const getOperationName = (operation: string): string => {
   let operationName: string;
 
   switch (operation) {
-    case '+': operationName = operations.PLUS; break;
-    case '-': operationName = operations.MINUS; break;
+    case '+': {
+      operationName = operations.PLUS;
+      break;
+    }
+    case '-': {
+      operationName = operations.MINUS;
+      break;
+    }
+    default: {
+      operationName = '';
+    }
   }
 
-  return operationName ? operationName : '';
-
+  return operationName;
 };
