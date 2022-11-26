@@ -1,11 +1,5 @@
-/**
- * Working PlusPlus++
- * Like plusplus.chat, but one that actually works, because you can host it yourself! 😉
- * Simple logging of requests.
- */
-
+import type { Request, RequestHandler } from 'express';
 import { handleEvent } from './events.js';
-import { Request, Response } from 'express';
 import {
   getAllScoresFromUser,
   getForChannels,
@@ -14,59 +8,45 @@ import {
   getUserProfile,
 } from './leaderboard.js';
 
-const { SLACK_VERIFICATION_TOKEN } = process.env;
-
-const HTTP_403 = 403;
-const HTTP_500 = 500;
+const {
+  SLACK_VERIFICATION_TOKEN: verificationToken = '',
+} = process.env;
 
 export const logRequest = (request: Request) => {
-  console.log(
-    `${request.ip} ${request.method} ${request.path} ${request.headers['user-agent']}`
-  );
+  console.log(`${request.ip} ${request.method} ${request.path} ${request.headers['user-agent']}`);
 };
 
-/**
- * Checks if the token supplied with an incoming event is valid. This ensures that events are not
- * processed from random requests not originating from Slack.
- *
- * WARNING: When checking the return value of this function, ensure you use strict equality so that
- *          an error response is not misinterpreted as truthy.
+export const logResponseError = (error: unknown) => {
+  if (error instanceof Error) {
+    console.log(error.message);
+  }
+};
 
- */
-export const validateToken = (suppliedToken: string, serverToken: string): { error: number, message: string } => {
+export const validateToken = (suppliedToken: string, serverToken: string) => {
   // Sanity check for bad values on the server side - either empty, or still set to the default.
   if (!serverToken.trim() || serverToken === 'xxxxxxxxxxxxxxxxxxxxxxxx') {
     console.error('500 Internal server error - bad verification value');
     return {
-      error: HTTP_500,
+      error: 500,
       message: 'Internal server error.',
     };
   }
 
-  // Check that this is Slack making the request.
   if (suppliedToken !== serverToken) {
     console.error('403 Access denied - incorrect verification token');
     return {
-      error: HTTP_403,
+      error: 403,
       message: 'Access denied.',
     };
   }
 
-  // If we get here, we're good to go!
-  return;
-}; // ValidateToken.
+  return true;
+};
 
-/**
- * Handles GET requests to the app. At the moment this only really consists of an authenticated
- * view of the full leaderboard.
- */
-export const handleGet = async (request: Request, response: Response): Promise<void> => {
+export const handleGet: RequestHandler = async (request, response) => {
   logRequest(request);
 
   switch (request.path.replace(/\/$/, '')) {
-    // Full leaderboard. This will only work when a valid, non-expired token and timestamp are
-    // provided - the full link can be retrieved by requesting the leaderboard within Slack.
-    // TODO: This should probably be split out into a separate function of sorts, like handlePost.
     case '/leaderboard':
       response.json(await getForWeb(request));
       break;
@@ -83,7 +63,7 @@ export const handleGet = async (request: Request, response: Response): Promise<v
       try {
         response.json(await getKarmaFeed(request));
       } catch (err) {
-        console.log(err.message);
+        logResponseError(err);
       }
       break;
 
@@ -91,40 +71,30 @@ export const handleGet = async (request: Request, response: Response): Promise<v
       try {
         response.json(await getUserProfile(request));
       } catch (err) {
-        console.log(err.message);
+        logResponseError(err);
       }
       break;
 
-    // A simple default GET response is sometimes useful for troubleshooting.
     default:
-      response.send(
-        'It works! However, this app only accepts POST requests for now.'
-      );
+      response.send('It works! However, this app only accepts POST requests for now.');
       break;
   }
-}; // HandleGet.
+};
 
-/**
- * Handles POST requests to the app.
- */
-export const handlePost = (request: Request, response: Response): Promise<void> => {
+export const handlePost: RequestHandler = (request, response) => {
   logRequest(request);
 
   // Respond to challenge sent by Slack during event subscription set up.
   if (request.body.challenge) {
     response.send(request.body.challenge);
     console.info('200 Challenge response sent');
-    return;
+    return null;
   }
 
-  // Ensure the verification token in the incoming request is valid.
-  const validation = validateToken(
-    request.body.token,
-    SLACK_VERIFICATION_TOKEN
-  );
-  if (validation) {
+  const validation = validateToken(request.body.token, verificationToken);
+  if (validation !== true) {
     response.status(validation.error).send(validation.message);
-    return;
+    return null;
   }
 
   // Send back a 200 OK now so Slack doesn't get upset.
@@ -137,9 +107,9 @@ export const handlePost = (request: Request, response: Response): Promise<void> 
   // @see https://api.slack.com/events-api#graceful_retries
   if (request.headers['x-slack-retry-num']) {
     console.log('Skipping Slack retry.');
-    return;
+    return null;
   }
 
   // Handle the event now. If the event is invalid, this will return false.
   return handleEvent(request.body.event, request);
-}; // HandlePost.
+};
