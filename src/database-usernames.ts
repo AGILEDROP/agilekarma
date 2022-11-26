@@ -1,18 +1,20 @@
-/* eslint-disable max-len */
-'use strict';
+import { createConnection, format } from 'mysql';
+import mysqlConfig from './database/mysql-config.js';
 
-import { ConnectionConfig, createConnection, format } from "mysql";
+const addUsername = () => new Promise((resolve, reject) => {
+  const db = createConnection(mysqlConfig);
+  const str = "UPDATE user SET user_username = LOWER( REPLACE( user_name, ' ', '' ) ) WHERE (user_username = '' OR user_username IS NULL)";
+  const query = format(str, []);
 
-require('dotenv').config();
-
-const mysqlConfig: ConnectionConfig = {
-  host: process.env.DATABASE_HOST,
-  port: Number.parseInt(process.env.DATABASE_PORT, 10),
-  user: process.env.DATABASE_USER,
-  password: process.env.DATABASE_PASSWORD,
-  database: process.env.DATABASE_NAME
-};
-console.log(mysqlConfig);
+  db.query(query, (err, result) => {
+    if (err) {
+      reject(err);
+    } else {
+      console.log(result);
+      resolve(result);
+    }
+  });
+});
 
 /**
  * Adds usernames to database
@@ -20,31 +22,8 @@ console.log(mysqlConfig);
 const prepareDatabase = async (): Promise<any> => {
   await addUsername();
   console.log('Usernames Added');
-  setTimeout((() => {
-    return process.exit(22);
-  }), 500);
+  setTimeout((() => process.exit(22)), 500);
 };
-
-/**
- * Creates user table.
- */
-
-const addUsername = (): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    const db = createConnection(mysqlConfig);
-    const str = "UPDATE user SET user_username = LOWER( REPLACE( user_name, ' ', '' ) ) WHERE (user_username = '' OR user_username IS NULL)";
-    const query = format(str, null);
-
-    db.query(query, (err: string, result: string) => {
-      if (err) {
-        reject(err);
-      } else {
-        console.log(result);
-        resolve(result);
-      }
-    });
-  });
-}
 
 prepareDatabase().catch((reason) => {
   console.log(reason);
