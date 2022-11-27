@@ -1,21 +1,19 @@
-'use strict';
-
-import fs from "fs"
-import crypto from "crypto"
-import Handlebars from "handlebars";
-import { getUserName } from "./slack.js";
-import { Nullable, PlusMinusEventData } from "@types";
+import fs from 'fs';
+import crypto from 'crypto';
+import Handlebars from 'handlebars';
+import type { Nullable, PlusMinusEventData } from '@types';
+import { getUserName } from './slack.js';
 
 const templates: Record<string, string> = {};
 
-/* eslint-disable no-process-env */
-const envSecret1 = process.env.SLACK_VERIFICATION_TOKEN,
-  envSecret2 = process.env.SIGNING_SECRET;
-/* eslint-enable no-process-env */
+const {
+  SLACK_VERIFICATION_TOKEN: slackToken,
+  SIGNING_SECRET: secret,
+} = process.env;
 
-const ONE_DAY = 60 * 60 * 24, // eslint-disable-line no-magic-numbers
-  TOKEN_TTL = ONE_DAY,
-  MILLISECONDS_TO_SECONDS = 1000;
+const ONE_DAY = 60 * 60 * 24;
+const TOKEN_TTL = ONE_DAY;
+const MILLISECONDS_TO_SECONDS = 1000;
 
 /**
  * Given a message and a list of commands, extracts the first command mentioned in the message.
@@ -23,21 +21,19 @@ const ONE_DAY = 60 * 60 * 24, // eslint-disable-line no-magic-numbers
  *       detected inside a larger one.
  */
 export const extractCommand = (message: string, commands: string[]): string => {
+  let firstLocation = Number.MAX_SAFE_INTEGER;
+  let firstCommand = '';
 
-  let firstLocation = Number.MAX_SAFE_INTEGER,
-    firstCommand;
-
-  for (const command of commands) {
+  commands.forEach((command) => {
     const location = message.indexOf(command);
-    if (-1 !== location && location < firstLocation) {
+    if (location !== -1 && location < firstLocation) {
       firstLocation = location;
       firstCommand = command;
     }
-  }
+  });
 
-  return firstCommand ? firstCommand : '';
-
-}; // ExtractCommand.
+  return firstCommand;
+};
 
 /**
  * Extracts a valid Slack user ID from a string of text.
@@ -52,58 +48,55 @@ export const extractUserID = (text: string): string => {
  * We take the operation down to one character, and also support — due to iOS' replacement of --.(i.e. + or -).
  */
 export const extractPlusMinusEventData = (text: string): Nullable<PlusMinusEventData> => {
-  let usernameID;
   const data = text.match(/<@([A-Za-z0-9]+)>+\s*(\+{2}|-{2}|—{1}|undo)\s*(.+)?/);
-  if (null !== data && 'undefined' !== typeof data[1] && null !== data[1]) {
-    usernameID = extractUserID(data[1]);
+  if (!data || data.length < 3) {
+    return null;
   }
 
+  const usernameID = extractUserID(data[1]);
   if (!usernameID) {
     return null;
   }
 
   let operation = data[2];
-
-  if ('undo' !== operation) {
+  if (operation !== 'undo') {
     operation = data[2].substring(0, 1).replace('—', '-');
   }
 
   return {
     item: data[1],
-    operation: operation,
-    description: data[3]
+    operation,
+    description: data[3],
   };
-
-}; // ExtractPlusMinusEventData.
+};
 
 /**
  * Generates a time-based token based on secrets from the environment.
  */
 export const getTimeBasedToken = (ts: string): string => {
-
   if (!ts) {
     throw Error('Timestamp not provided when getting time-based token.');
   }
 
+  if (!slackToken || !secret) {
+    throw Error('SLACK_VERIFICATION_TOKEN or SIGNING_SECRET env variable missing.');
+  }
+
   return crypto
-    .createHmac('sha256', envSecret1)
-    .update(ts + envSecret2)
+    .createHmac('sha256', slackToken)
+    .update(ts + secret)
     .digest('hex');
 };
 
 /**
  * Returns the current time as a standard Unix epoch timestamp.
  */
-export const getTimestamp = (): number => {
-  return Math.floor(Date.now() / MILLISECONDS_TO_SECONDS);
-};
+export const getTimestamp = (): number => Math.floor(Date.now() / MILLISECONDS_TO_SECONDS);
 
 /**
  * Determines whether or not a number should be referred to as a plural - eg. anything but 1 or -1.
  */
-export const isPlural = (number: number): boolean => {
-  return 1 !== Math.abs(number);
-};
+export const isPlural = (number: number): boolean => Math.abs(number) !== 1;
 
 /**
  * Validates a time-based token to ensure it is both still valid, and that it can be successfully
@@ -113,7 +106,7 @@ export const isTimeBasedTokenStillValid = (token: string, ts: any): boolean => {
   const now = getTimestamp();
 
   // Don't support tokens too far from the past.
-  if (now > parseInt(ts) + TOKEN_TTL) {
+  if (now > parseInt(ts, 10) + TOKEN_TTL) {
     return false;
   }
 
@@ -124,19 +117,13 @@ export const isTimeBasedTokenStillValid = (token: string, ts: any): boolean => {
 
   const hash = getTimeBasedToken(ts);
 
-  if (hash !== token) {
-    return false;
-  }
-
-  return true;
+  return hash === token;
 };
 
 /**
  * Determines whether or not a string represents a Slack user ID - eg. U12345678.
  */
-export const isUser = (item: string): boolean => {
-  return item.match(/U[A-Z0-9]+/) ? true : false;
-};
+export const isUser = (item: string): boolean => !!item.match(/U[A-Z0-9]+/);
 
 /**
  * Takes an item and returns it maybe linked using Slack's 'mrkdwn' format (their own custom
@@ -146,34 +133,27 @@ export const isUser = (item: string): boolean => {
  * @return {string} The item linked with Slack mrkdwn
  * @see https://api.slack.com/docs/message-formatting#linking_to_channels_and_users
  */
-export const maybeLinkItem = (item: string): string => {
-  return isUser(item) ? '<@' + item + '>' : item;
-};
+export const maybeLinkItem = (item: string): string => (isUser(item) ? `<@${item}>` : item);
 
 /**
  * Renders HTML for the browser, using Handlebars. Includes a standard header and footer.
  */
 export const render = async (templatePath: string, context = {}, request: { query?: { botUser: string } } = {}): Promise<string> => {
-
   // Retrieve the header and footer HTML, if we don't already have it in memory.
   if (!templates.header) templates.header = fs.readFileSync('src/html/header.html', 'utf8');
   if (!templates.footer) templates.footer = fs.readFileSync('src/html/footer.html', 'utf8');
 
   // Retrieve the requested template HTML if it is not already in memory.
   if (!templates[templatePath]) {
-    console.log('Retrieving template ' + templatePath + '.');
+    console.log(`Retrieving template ${templatePath}.`);
     templates[templatePath] = fs.readFileSync(templatePath, 'utf8');
   }
 
   const defaults = {
-    site_title: (
-      request.query.botUser ?
-        await getUserName(request.query.botUser) :
-        'Working PlusPlus++'
-    )
+    site_title: request.query?.botUser ? await getUserName(request.query.botUser) : 'Working PlusPlus++',
   };
 
   const output = templates.header + templates[templatePath] + templates.footer;
-  return Handlebars.compile(output)(Object.assign(defaults, context));
 
-}; // Render.
+  return Handlebars.compile(output)(Object.assign(defaults, context));
+};
