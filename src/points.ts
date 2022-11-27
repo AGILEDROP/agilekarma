@@ -28,7 +28,7 @@ const {
 /**
  * Retrieves all scores for leaderboard.
  */
-const getAllScores = (startDate: string, endDate: string, channelId: string): Promise<TopScore[]> => new Promise<TopScore[]>((resolve, reject) => {
+const getAllScores = (channelId: string, startDate?: string, endDate?: string): Promise<TopScore[]> => new Promise<TopScore[]>((resolve, reject) => {
   const db = createConnection(mysqlConfig);
   let str: string;
   let start: string;
@@ -78,7 +78,7 @@ const getAllScores = (startDate: string, endDate: string, channelId: string): Pr
 /**
 * Retrieves all scores from the database, ordered from highest to lowest per channel.
 */
-export const retrieveTopScores = (startDate: string, endDate: string, channelId: string): Promise<TopScore[]> => getAllScores(startDate, endDate, channelId);
+export const retrieveTopScores = (channelId: string, startDate?: string, endDate?: string): Promise<TopScore[]> => getAllScores(channelId, startDate, endDate);
 
 /**
  * Inserts or updates score for item.
