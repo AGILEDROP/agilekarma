@@ -5,6 +5,8 @@
   },
   "rules": {
     "no-console": "off",
-    "max-len": ["error", { "code": 300 }]
+    "max-len": ["error", { "code": 300 }],
+    "no-restricted-syntax": ["error", "ForInStatement", "LabeledStatement", "WithStatement"],
+    "import/extensions": ["error", {"js": "ignorePackages"}]
   }
 }
