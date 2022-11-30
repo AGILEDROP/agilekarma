@@ -7,26 +7,42 @@
  *
  * @see https://api.slack.com/web
  */
+import type { User } from '@types';
+import type { WebClient } from '@slack/web-api';
+import type { Member } from '@slack/web-api/dist/response/UsersListResponse.js';
 
-'use strict';
-
-import { User } from "@types";
-
-let slack: any;
+let slack: WebClient;
 let users: Record<string, User>;
 
 /**
  * Injects the Slack client to be used for all outgoing messages.
  */
-export const setSlackClient = (client: any) => {
+export const setSlackClient = (client: WebClient) => {
   slack = client;
+};
+
+export const memberToUser = (member: Member): User | null => {
+  let profile = {};
+  if (member.profile) {
+    profile = { ...member.profile };
+  }
+
+  if (!member.id) {
+    return null;
+  }
+
+  return {
+    id: member.id,
+    is_bot: member.is_bot || false,
+    name: member.name || '(unknown)',
+    profile,
+  };
 };
 
 /**
  * Retrieves a list of all users in the linked Slack team. Caches it in memory.
  * */
 export const getUserList = async () => {
-
   if (users) {
     return users;
   }
@@ -40,109 +56,81 @@ export const getUserList = async () => {
     throw Error('Error occurred retrieving user list from Slack.');
   }
 
-  for (const user of userList.members) {
-    users[user.id] = user;
+  if (userList.members) {
+    for (const member of userList.members) {
+      const user = memberToUser(member);
+      if (user) {
+        users[user.id] = user;
+      }
+    }
   }
 
   return users;
-
-}; // GetUserList.
+};
 
 /**
  * Given a Slack user ID, returns the user's real name or optionally, the user's username. If the
  * user *does not* have a real name set, their username is returned regardless.
  */
 export const getUserName = async (userId: string, username = false): Promise<string> => {
-
-  const users = await getUserList();
+  await getUserList();
   let user = users[userId];
 
-  if ('undefined' === typeof user) {
-
-    //Get new list from slack and match the id
+  if (!user) {
+    // Get new list from slack and match the id.
     const userList = await slack.users.list();
-
-    user = userList.members.find((user: { id: string; }) => user.id == userId);
+    const member = userList.members?.find((slackUser) => slackUser.id === userId);
+    if (member) {
+      const convertedUser = memberToUser(member);
+      if (convertedUser) {
+        user = convertedUser;
+      }
+    }
   }
 
-  //If still not found return unknown
-  if ('undefined' === typeof user) {
+  // If still not found return unknown.
+  if (!user) {
     return '(unknown)';
   }
 
   return username || !user.profile.real_name ? user.name : user.profile.real_name;
-
 };
 
 /**
  * Sends a message to a Slack channel.
  */
 export const sendMessage = (text: string, channel: string): Promise<void> => {
-
-  let payload = {
-    channel,
-    text
-  };
-
-  // If 'text' was provided as an object instead, merge it into the payload.
-  if ('object' === typeof text) {
-    delete payload.text;
-    payload = Object.assign(payload, text);
-  }
+  const payload = { channel, text };
 
   return new Promise((resolve, reject) => {
-    slack.chat.postMessage(payload).then((data: {ok: boolean}) => {
-
+    slack.chat.postMessage(payload).then((data) => {
       if (!data.ok) {
         console.error('Error occurred posting response.');
-        return reject();
+        reject();
+      } else {
+        resolve();
       }
-
-      resolve();
-
     });
+  });
+};
 
-  }); // Return new Promise.
-}; // SendMessage.
 /**
  * Sends an Ephemeral message to a Slack channel.
  */
-export const sendEphemeral = (text: string | object, channel: string, user: string): Promise<void> => {
-
-  let payload = {
-    channel,
-    text,
-    user
-  };
-
-  // If 'text' was provided as an object instead, merge it into the payload.
-  if ('object' === typeof text) {
-    delete payload.text;
-    payload = Object.assign(payload, text);
-  }
+export const sendEphemeral = (text: string, channel: string, user: string): Promise<void> => {
+  const payload = { channel, text, user };
 
   return new Promise((resolve, reject) => {
-    slack.chat.postEphemeral(payload).then((data: {ok: boolean}) => {
-
+    slack.chat.postEphemeral(payload).then((data: { ok: boolean }) => {
       if (!data.ok) {
         console.error('Error occurred posting response.');
-        return reject();
+        reject();
+      } else {
+        resolve();
       }
-
-      resolve();
-
     });
-
-  }); // Return new Promise.
-}; // SendMessage.
-
-/**
- *
- * Filters the channel array.
- */
-function channelFilter(channelData: { id: string }): boolean {
-  return this === channelData.id;
-}
+  });
+};
 
 /**
  *
@@ -150,20 +138,11 @@ function channelFilter(channelData: { id: string }): boolean {
  */
 export const getChannelName = async (channelId: string): Promise<string> => {
   const channelList = await slack.conversations.list({
-    // eslint-disable-next-line camelcase
     exclude_archived: true,
     types: 'public_channel,private_channel',
-    limit: 1000
+    limit: 1000,
   });
-  const channel = channelList.channels.filter(channelFilter, channelId);
+  const channel = channelList.channels?.find((chan) => chan.id === channelId);
 
-  if ('undefined' === typeof channel) {
-    return '(unknown)';
-  }
-
-  return channel[0].name;
-
+  return channel?.name || '(unknown)';
 };
-
-export { };
-
