@@ -52,7 +52,7 @@ export const handleGet: RequestHandler = async (request, response) => {
       break;
 
     case '/channels':
-      response.json(await getForChannels(request));
+      response.json(await getForChannels());
       break;
 
     case '/fromusers':
@@ -88,13 +88,13 @@ export const handlePost: RequestHandler = (request, response) => {
   if (request.body.challenge) {
     response.send(request.body.challenge);
     console.info('200 Challenge response sent');
-    return null;
+    return;
   }
 
   const validation = validateToken(request.body.token, verificationToken);
   if (validation !== true) {
     response.status(validation.error).send(validation.message);
-    return null;
+    return;
   }
 
   // Send back a 200 OK now so Slack doesn't get upset.
@@ -107,9 +107,8 @@ export const handlePost: RequestHandler = (request, response) => {
   // @see https://api.slack.com/events-api#graceful_retries
   if (request.headers['x-slack-retry-num']) {
     console.log('Skipping Slack retry.');
-    return null;
+    return;
   }
 
-  // Handle the event now. If the event is invalid, this will return false.
-  return handleEvent(request.body.event, request);
+  handleEvent(request.body.event, request);
 };
