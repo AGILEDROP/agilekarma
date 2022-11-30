@@ -6,7 +6,7 @@
  */
 import camelCase from 'lodash.camelcase';
 import type { Request } from 'express';
-import type { Event, User } from '@types';
+import type { Event, User } from './types.js';
 import { handler } from './leaderboard.js';
 import { getRandomMessage } from './messages.js';
 import { getOperationName, operations } from './operations.js';

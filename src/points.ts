@@ -14,7 +14,7 @@ import type {
   KarmaFeed,
   Score,
   TopScore,
-} from '@types';
+} from './types.js';
 import mysqlConfig from './database/mysql-config.js';
 import { getChannelName, getUserName } from './slack.js';
 

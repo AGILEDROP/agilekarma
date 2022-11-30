@@ -4,7 +4,7 @@
  * TODO: Add the ability to customise these messages - probably via JSON objects in environment
  *       variables.
  */
-import type { Operation } from '@types';
+import type { Operation } from './types.js';
 import { operations } from './operations.js';
 import { isPlural, maybeLinkItem } from './helpers.js';
 

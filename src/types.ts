@@ -1,13 +1,3 @@
-declare global {
-  namespace NodeJS {
-    interface ProcessEnv {
-      UNDO_TIME_LIMIT: string;
-      SLACK_VERIFICATION_TOKEN: string;
-      DATABASE_PORT: string;
-    }
-  }
-}
-
 export interface Event {
   type: string;
   subtype: string;
@@ -57,21 +47,6 @@ export interface UserScore {
   fromUser: string;
   score: number;
   channel: string;
-}
-
-interface Attachment {
-  text: string;
-  color: string;
-  fields?: AttachmentField[];
-}
-
-interface AttachmentField {
-  value: string;
-  short?: boolean;
-}
-
-export interface Message {
-  attachments: Attachment[];
 }
 
 export interface User {

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import crypto from 'crypto';
 import Handlebars from 'handlebars';
-import type { Nullable, PlusMinusEventData } from '@types';
+import type { Nullable, PlusMinusEventData } from './types.js';
 import { getUserName } from './slack.js';
 
 const templates: Record<string, string> = {};

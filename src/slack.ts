@@ -7,9 +7,9 @@
  *
  * @see https://api.slack.com/web
  */
-import type { User } from '@types';
 import type { WebClient } from '@slack/web-api';
 import type { Member } from '@slack/web-api/dist/response/UsersListResponse.js';
+import type { User } from './types.js';
 
 let slack: WebClient;
 let users: Record<string, User>;

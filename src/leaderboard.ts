@@ -2,14 +2,14 @@
  * Contains logic for returning the leaderboard.
  */
 import type { Request } from 'express';
+import querystring from 'querystring';
 import type {
   Item,
   TopScore,
   UserScore,
   Score,
   KarmaFeed, Event,
-} from '@types';
-import querystring from 'querystring';
+} from './types.js';
 import { isPlural, isUser, maybeLinkItem } from './helpers.js';
 import { getChannelName, getUserName, sendEphemeral } from './slack.js';
 import {
