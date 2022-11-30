@@ -4,7 +4,6 @@
 import type { Request } from 'express';
 import type {
   Item,
-  Message,
   TopScore,
   UserScore,
   Score,
@@ -155,34 +154,11 @@ export const getForSlack = async (event: { channel: string; user: string; }, req
     const bottomMessageText = `Or see the <${getLeaderboardWeb(request, event.channel)}|whole list>.`;
     const noUsers = 'No Users on Leaderboard.';
 
-    let message: Message;
+    let message: string;
     if (users === undefined || users.length === 0) {
-      message = {
-        attachments: [
-          {
-            text: noUsers,
-            color: 'danger',
-          },
-        ],
-      };
+      message = noUsers;
     } else {
-      message = {
-        attachments: [
-          {
-            text: messageText,
-            color: 'good', // Slack's 'green' colour.
-            fields: [
-              {
-                value: users.slice(0, limit).join('\n'),
-                short: true,
-              },
-              {
-                value: `\n${bottomMessageText}`,
-              },
-            ],
-          },
-        ],
-      };
+      message = `${messageText}\n${users.slice(0, limit).join('\n')}\n${bottomMessageText}`;
     }
 
     console.log('Sending the leaderboard.');
