@@ -16,7 +16,7 @@ const mysql = require( 'mysql' );
 const uuid = require ( 'uuid' );
 const slack = require( './slack' );
 const scoresTableName = 'score';
-const moment = require ( 'moment' );
+const moment = require( 'moment' );
 
 /* eslint-disable no-process-env */
 /* eslint-enable no-process-env */
@@ -260,21 +260,26 @@ function getAllScores( startDate, endDate, channelId ) {
     let start;
     let end;
     let inserts;
-    
-    let channels = channelId.split(',');
-
+    let channels;
     let where_str = 'WHERE (';
-    where_str += channels.map(x => { return "`channel_id` = '" + x + "'" }).join(" OR ");
-    where_str += ')';
 
-    if ( 'undefined' !== typeof startDate || 'undefined' !== typeof endDate) {
+    if ( channelId !== undefined ) {
+      channels = channelId.split(',');
+      
+      where_str += channels.map(x => { return "`channel_id` = '" + x + "'" }).join(" OR ");
+      where_str += ')';
+    }
+
+    if (startDate === null || endDate === null) {
+      start = moment( 0 ).format( 'YYYY-MM-DD HH:mm:ss' );
+      end = moment( Date.now() ).format( 'YYYY-MM-DD HH:mm:ss' );
+    } else if ( startDate !== undefined || endDate !== undefined ) {
       start = moment.unix( startDate ).format( 'YYYY-MM-DD HH:mm:ss' );
       end = moment.unix( endDate ).format( 'YYYY-MM-DD HH:mm:ss' );
     } else {
       start = moment( 0 ).format( 'YYYY-MM-DD HH:mm:ss' );
       end = moment( Date.now() ).format( 'YYYY-MM-DD HH:mm:ss' );
     }
-
 
     if ( 'all' === channelId ) {
       inserts = [ start, end ];
@@ -684,12 +689,18 @@ const getAll = async( username, fromTo, channel, itemsPerPage, page, searchStrin
  * @returns {Promise}
  *   Returned promise.
  */
-function insertUser( userId, userName ) {
-  return new Promise( function( resolve, reject ) {
+const insertUser = async( userId, userName ) => {
+
+  const userObject = await slack.getUserEmail( userId );
+  const userEmail = userObject.profile.email;
+  console.log("USER EMAIL: " + userEmail);
+
+  return new Promise( function ( resolve, reject ) {
     const db = mysql.createConnection( mysqlConfig );
     const lowcaseUserName = userName.split(" ").join("").toLocaleLowerCase();
-    const str = 'INSERT INTO ?? (user_id, user_name, user_username, banned_until) VALUES (?, ?, ?, NULL);';
-    const inserts = [ 'user', userId, userName, lowcaseUserName ];
+
+    const str = 'INSERT INTO ?? (user_id, user_name, user_username, user_email, banned_until) VALUES (?, ?, ?, ?, NULL);';
+    const inserts = [ 'user', userId, userName, lowcaseUserName, userEmail ];
     const query = mysql.format( str, inserts );
     db.query( query, function( err, result ) {
       if ( err ) {
@@ -878,6 +889,35 @@ const getAllChannels = () => {
   });
 }
 
+/**
+ * Verify Email.
+ *
+ * @returns {Promise}
+ *   The promise.
+ */
+function verifyEmail( email ) {
+  return new Promise( function( resolve, reject ) {
+    const db = mysql.createConnection( mysqlConfig );
+    const str = 'SELECT user_email FROM ?? WHERE user_email = ?';
+    const inserts = [ 'user', email ];
+    const query = mysql.format( str, inserts );
+    db.query( query, function( err, result ) {
+      if ( err ) {
+        console.log( db.sql );
+        reject( err );
+      } else if (result.length === 0) {
+        resolve( false );
+      } else {
+        console.log(result);
+        resolve( true );
+      }
+    });
+
+    db.end(dbErrorHandler);
+
+  });
+}
+
 module.exports = {
   retrieveTopScores,
   updateScore,
@@ -891,5 +931,6 @@ module.exports = {
   getKarmaFeed,
   getName,
   getAll,
-  getUserId
+  getUserId,
+  verifyEmail
 };
