@@ -8,14 +8,16 @@ import { setSlackClient } from './src/slack.js';
 dotenv.config();
 
 const {
-  SLACK_OAUTH_ACCESS_TOKEN: accessToken = '',
+  SLACK_BOT_USER_OAUTH_ACCESS_TOKEN: accessToken = '',
   SCOREBOT_LEADERBOARD_URL: leaderboardUrl = '',
   SCOREBOT_PORT: port = '80',
   SCOREBOT_USE_SSL: useHttps = '0',
 } = process.env;
+
 const protocol = useHttps !== '1' ? 'http://' : 'https://';
 const frontendUrl = protocol + leaderboardUrl;
 const server = express();
+// @ts-ignore
 setSlackClient(new slackClient.WebClient(accessToken));
 
 server.use((req, res, next) => {

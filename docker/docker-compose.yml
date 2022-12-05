@@ -74,6 +74,11 @@ services:
     container_name: ${PROJECT_NAME}_mysql
     command: --default-authentication-plugin=mysql_native_password
     restart: unless-stopped
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 262144
+        hard: 262144
     environment:
       MYSQL_DATABASE: ${DATABASE_NAME}
       MYSQL_USER: ${DATABASE_USER}
@@ -113,6 +118,7 @@ services:
       - NGROK_LOOK_DOMAIN=nodejs
       - NGROK_PORT=${SCOREBOT_PORT}
       - NGROK_REGION=eu
+      - NGROK_AUTH=${NGROK_AUTH}
     networks:
       - proxy
       - default

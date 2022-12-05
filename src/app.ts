@@ -86,7 +86,7 @@ export const handlePost: RequestHandler = (request, response) => {
 
   // Respond to challenge sent by Slack during event subscription set up.
   if (request.body.challenge) {
-    response.send(request.body.challenge);
+    response.send({challenge: request.body.challenge});
     console.info('200 Challenge response sent');
     return;
   }
