@@ -7,6 +7,7 @@ import {
   getKarmaFeed,
   getUserProfile,
 } from './leaderboard.js';
+import knexInstance from './database/knex.js';
 
 const {
   SLACK_VERIFICATION_TOKEN: verificationToken = '',

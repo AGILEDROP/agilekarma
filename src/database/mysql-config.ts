@@ -1,5 +1,6 @@
 import * as dotenv from 'dotenv';
 import type { ConnectionConfig } from 'mysql';
+import type { Knex } from 'knex';
 
 dotenv.config();
 
@@ -12,6 +13,14 @@ const {
 } = process.env;
 
 const mysqlConfig: ConnectionConfig = {
+  host,
+  port: Number.parseInt(port, 10),
+  user,
+  password,
+  database,
+};
+
+export const mysqlConfig2: Knex.MySqlConnectionConfig = {
   host,
   port: Number.parseInt(port, 10),
   user,

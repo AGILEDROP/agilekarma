@@ -177,7 +177,7 @@ export const getForSlack = async (event: { channel: string; user: string; }, req
 export const getForWeb = async (request: Request): Promise<Item[]> => {
   try {
     const { startDate, endDate, channelId } = request.query as Record<string, string>;
-    const scores = await retrieveTopScores(startDate, endDate, channelId);
+    const scores = await retrieveTopScores(channelId, startDate, endDate);
     const users = await rankItems(scores, 'users', 'object');
 
     console.log(users);
@@ -239,7 +239,7 @@ export const getKarmaFeed = async (request: Request): Promise<{ count: number, r
       endDate,
       channelId,
     } = request.query as Record<string, string>;
-    const feed = await getKarmaFeedPoints(itemsPerPage, Number(page), searchString, channelId, startDate, endDate);
+    const feed = await getKarmaFeedPoints(itemsPerPage, Number(page), searchString, startDate, endDate, channelId);
     console.log('Sending Karma Feed!');
 
     return feed;
