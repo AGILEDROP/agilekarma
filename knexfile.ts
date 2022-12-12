@@ -1,5 +1,4 @@
 import type { Knex } from 'knex';
-import * as knexPkg from 'knex';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -21,9 +20,11 @@ const config: Knex.Config = {
     password,
     database,
   },
+  migrations: {
+    tableName: 'knex_migrations',
+    directory: './src/database/migrations',
+    extension: 'ts',
+  },
 };
 
-const { knex } = knexPkg.default; // https://github.com/knex/knex/issues/5358
-const knexInstance = knex(config);
-
-export default knexInstance;
+export default config;

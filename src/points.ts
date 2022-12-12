@@ -13,7 +13,7 @@ import type {
   GetLastScore,
   KarmaFeed,
   Score,
-  TopScore, UserScore,
+  TopScore,
 } from './types.js';
 import { getChannelName, getUserName } from './slack.js';
 import knexInstance from './database/knex.js';
@@ -49,9 +49,7 @@ const getAllScores = (channelId: string = '', startDate?: string, endDate?: stri
     })
     .groupBy('to_user_id')
     .orderBy('score', 'desc')
-    .debug(true)
     .then((result) => {
-      console.log('RESULT -----------', result);
       resolve(result);
     })
     .catch((error) => reject(error));
@@ -83,18 +81,6 @@ const insertScore = (toUserId: string, fromUserId: string, channelId: string, de
  * Selects score for item.
  */
 const getUserScore = (item: string, channelId: string): Promise<{ score: number }[]> => new Promise((resolve, reject) => {
-  /* const db = createConnection(mysqlConfig);
-  const inserts = ['score', scoresTableName, item, channelId];
-  const str = 'SELECT COUNT(score_id) as ?? FROM ?? WHERE to_user_id = ? AND `channel_id` = ?';
-  const query = format(str, inserts);
-  db.query(query, [scoresTableName, item], (err, result) => {
-    if (err) {
-      reject(err);
-    } else {
-      resolve(result);
-    }
-  }); */
-  // db.end(dbErrorHandler);
   knexInstance(scoresTableName).select()
     .count<{ score: number }[]>('score_id as score')
     .where('to_user_id', '=', item)
@@ -372,8 +358,6 @@ export const getKarmaFeed = (itemsPerPage: string | number, page: number, search
     .then((result) => {
       knexInstance('score')
         .select()
-        // .count({ count: '*', as: 'scores' })
-        // .as('scores')
         .count()
         .as('scores')
         .innerJoin('channel', function on() {
