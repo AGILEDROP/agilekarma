@@ -28,6 +28,11 @@ body {
 }
 
 .login-page {
+  margin-top: 15%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
 }
 
 .card-deck .podium {

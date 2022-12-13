@@ -15,7 +15,7 @@ const App = (props) => {
   const [searchTerm, setSearchTerm] = useState("");
 
   return (
-    <GoogleOAuthProvider clientId="259567839536-4rhcd14a2na0uubb5e11s02u13eue3tn.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId=>
       <Router>
         <PrivateRoute
           path="/"

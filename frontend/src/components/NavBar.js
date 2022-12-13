@@ -17,6 +17,7 @@ const NavBar = (props) => {
   const handleLogout = () => {
     logout();
   };
+
   let location = useLocation();
   const urlParams = location.search;
 
