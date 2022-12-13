@@ -4,13 +4,13 @@
  * @author Tim Malone <tdmalone@gmail.com>
  */
 
-'use strict';
+"use strict";
 
-const slack = require( './slack' ),
-      points = require( './points' ),
-      helpers = require( './helpers' );
+const slack = require("./slack"),
+  points = require("./points"),
+  helpers = require("./helpers");
 
-const querystring = require( 'querystring' );
+const querystring = require("querystring");
 
 /**
  * Gets the URL for the full leaderboard, including a token to ensure that it is only viewed by
@@ -20,29 +20,27 @@ const querystring = require( 'querystring' );
  * @param {string} channelId  ChannelId to get score for.
  * @returns {string} The leaderboard URL, which will be picked up in ../index.js when called.
  */
-const getLeaderboardUrl = ( request, channelId ) => {
-
+const getLeaderboardUrl = (request, channelId) => {
   const hostname = request.headers.host;
 
   const params = {
-    channel: channelId
+    channel: channelId,
   };
   // eslint-disable-next-line no-process-env,no-negated-condition,yoda
-  const protocol = process.env.SCOREBOT_USE_SSL !== '1' ? 'http://' : 'https://';
-  return protocol + hostname + '/leaderboard?' + querystring.stringify( params );
-
+  const protocol =
+    process.env.SCOREBOT_USE_SSL !== "1" ? "http://" : "https://";
+  return protocol + hostname + "/leaderboard?" + querystring.stringify(params);
 }; // GetLeaderboardUrl.
 
-const getLeaderboardWeb = ( request, channelId ) => {
-
+const getLeaderboardWeb = (request, channelId) => {
   const params = {
-    channel: channelId
+    channel: channelId,
   };
   // eslint-disable-next-line no-process-env,no-negated-condition,yoda
-  const protocol = process.env.SCOREBOT_USE_SSL !== '1' ? 'http://' : 'https://';
+  const protocol =
+    process.env.SCOREBOT_USE_SSL !== "1" ? "http://" : "https://";
   const frontendUrl = process.env.SCOREBOT_LEADERBOARD_URL;
-  return protocol + frontendUrl + '?' + querystring.stringify( params );
-
+  return protocol + frontendUrl + "?" + querystring.stringify(params);
 }; // GetLeaderboardWeb.
 
 /**
@@ -64,106 +62,105 @@ const getLeaderboardWeb = ( request, channelId ) => {
  *                  format is 'slack') or objects containing 'rank', 'item' and 'score' values (if
  *                  format is 'object').
  */
-const rankItems = async( topScores, itemType = 'users', format = 'slack' ) => {
-
+const rankItems = async (topScores, itemType = "users", format = "slack") => {
   let lastScore, lastRank, output;
   const items = [];
 
-  for ( const score of topScores ) {
-
+  for (const score of topScores) {
     let item = score.item;
-    
-    const isUser = helpers.isUser( score.item ) ? true : false;
+
+    const isUser = helpers.isUser(score.item) ? true : false;
 
     // Skip if this item is not the item type we're ranking.
-    if ( isUser && 'users' !== itemType || ! isUser && 'users' === itemType ) {
+    if ((isUser && "users" !== itemType) || (!isUser && "users" === itemType)) {
       continue;
     }
 
     // For users, we need to link the item (for Slack) or get their real name (for other formats).
-    if ( isUser ) {
-      item = (
-        'slack' === format ? helpers.maybeLinkItem( item ) : await slack.getUserName( item )
-      );
+    if (isUser) {
+      item =
+        "slack" === format
+          ? helpers.maybeLinkItem(item)
+          : await slack.getUserName(item);
     }
 
-    const itemTitleCase = item.substring( 0, 1 ).toUpperCase() + item.substring( 1 ),
-          plural = helpers.isPlural( score.score ) ? 's' : '';
+    const itemTitleCase =
+        item.substring(0, 1).toUpperCase() + item.substring(1),
+      plural = helpers.isPlural(score.score) ? "s" : "";
 
     // Determine the rank by keeping it the same as the last user if the score is the same, or
     // otherwise setting it to the same as the item count (and adding 1 to deal with 0-base count).
     const rank = score.score === lastScore ? lastRank : items.length + 1;
 
-    switch ( format ) {
-      case 'slack':
-
-        output = (
-          rank + '. ' + itemTitleCase + ' [' + score.score + ' point' + plural + ']'
-        );
+    switch (format) {
+      case "slack":
+        output =
+          rank +
+          ". " +
+          itemTitleCase +
+          " [" +
+          score.score +
+          " point" +
+          plural +
+          "]";
 
         // If this is the first item, it's the winner!
-        if ( ! items.length ) {
-          output += ' ' + ( isUser ? ':muscle:' : ':tada:' );
+        if (!items.length) {
+          output += " " + (isUser ? ":muscle:" : ":tada:");
         }
 
         break;
 
-      case 'object':
+      case "object":
         output = {
           rank,
           item: itemTitleCase,
-          score: score.score + ' point' + plural,
-          item_id: score.item
+          score: score.score + " point" + plural,
+          item_id: score.item,
         };
         break;
     }
 
-    items.push( output );
+    items.push(output);
 
     lastRank = rank;
     lastScore = score.score;
-
   } // For scores.
 
   return items;
-
 }; // RankItems.
 
-const userScores = async( topScores ) => {
-
+const userScores = async (topScores) => {
   const items = [];
   let output;
 
-  for ( const score of topScores ) {
-
+  for (const score of topScores) {
     let toUser = score.item;
     let fromUser = score.from_user_id;
     let userScore = score.score;
     let channel = score.channel_id;
 
-    const isUser = helpers.isUser( toUser ) ? true : false;
+    const isUser = helpers.isUser(toUser) ? true : false;
 
     if (isUser) {
-      toUser = await slack.getUserName( toUser );
-      fromUser = await slack.getUserName( fromUser );
-      channel = await slack.getChannelName( channel )
+      toUser = await slack.getUserName(toUser);
+      fromUser = await slack.getUserName(fromUser);
+      channel = await slack.getChannelName(channel);
     }
 
     output = {
       toUser: toUser,
       fromUser: fromUser,
       score: userScore,
-      channel: '#' + channel
-    }
+      channel: "#" + channel,
+    };
 
-    items.push( output );
+    items.push(output);
     console.log("OUTPUT: " + JSON.stringify(output));
-
   }
 
   return items;
-
-}
+};
 
 /**
  * Retrieves and sends the current partial leaderboard (top scores only) to the requesting Slack
@@ -175,28 +172,28 @@ const userScores = async( topScores ) => {
  * @param {object} request The Express request object that resulted in this handler being run.
  * @returns {Promise} A Promise to send the Slack message.
  */
-const getForSlack = async( event, request ) => {
-
+const getForSlack = async (event, request) => {
   try {
     const limit = 5;
 
-    const scores = await points.retrieveTopScores( null, null, event.channel ),
-          users = await rankItems( scores, 'users' );
+    const scores = await points.retrieveTopScores(null, null, event.channel),
+      users = await rankItems(scores, "users");
 
     // Things = await rankItems( scores, 'things' );
 
-    const messageText = (
-      'Here you go. Best people this month in channel <#' + event.channel + '|' +
-       await slack.getChannelName( event.channel ) + '>.'
-    );
+    const messageText =
+      "Here you go. Best people this month in channel <#" +
+      event.channel +
+      "|" +
+      (await slack.getChannelName(event.channel)) +
+      ">.";
 
-    const bottomMessageText = (
-      'Or see the <' + getLeaderboardWeb( request, event.channel ) + '|whole list>. '
-    );
+    const bottomMessageText =
+      "Or see the <" +
+      getLeaderboardWeb(request, event.channel) +
+      "|whole list>. ";
 
-    const noUsers = (
-      'No Users on Leaderboard.'
-    );
+    const noUsers = "No Users on Leaderboard.";
 
     let message;
     if (users === undefined || users.length == 0) {
@@ -204,42 +201,41 @@ const getForSlack = async( event, request ) => {
         attachments: [
           {
             text: noUsers,
-            color: 'danger'
-          }
-        ]
-      }
+            color: "danger",
+          },
+        ],
+      };
     } else {
       message = {
         attachments: [
           {
             text: messageText,
-            color: 'good', // Slack's 'green' colour.
+            color: "good", // Slack's 'green' colour.
             fields: [
               {
-                value: users.slice( 0, limit ).join( '\n' ),
-                short: true
+                value: users.slice(0, limit).join("\n"),
+                short: true,
               },
               {
-                value: '\n' + bottomMessageText
-              }
+                value: "\n" + bottomMessageText,
+              },
 
               // {
               //   title: 'Things',
               //   value: things.slice( 0, limit ).join( '\n' ),
               //   short: true
               // }
-            ]
-          }
-        ]
+            ],
+          },
+        ],
       };
     }
 
-    console.log( 'Sending the leaderboard.' );
-    return slack.sendEphemeral( message, event.channel, event.user );
-  } catch ( err ) {
-    console.error( err.message );
+    console.log("Sending the leaderboard.");
+    return slack.sendEphemeral(message, event.channel, event.user);
+  } catch (err) {
+    console.error(err.message);
   }
-
 }; // GetForSlack.
 
 /**
@@ -248,24 +244,24 @@ const getForSlack = async( event, request ) => {
  * @param {object} request The Express request object that resulted in this handler being run.
  * @returns {string} HTML for the browser.
  */
-const getForWeb = async( request ) => {
-
+const getForWeb = async (request) => {
   try {
-
     const startDate = request.query.startDate;
     const endDate = request.query.endDate;
     const channelId = request.query.channel;
 
-    const scores = await points.retrieveTopScores( startDate, endDate, channelId );
-    const users = await rankItems( scores, 'users', 'object' );
+    const scores = await points.retrieveTopScores(
+      startDate,
+      endDate,
+      channelId
+    );
+    const users = await rankItems(scores, "users", "object");
 
     // console.log(users);
     return users;
-
-  } catch ( err ) {
-    console.error( err.message );
+  } catch (err) {
+    console.error(err.message);
   }
-
 }; // GetForWeb.
 
 /**
@@ -274,17 +270,15 @@ const getForWeb = async( request ) => {
  * @param {object} request The Express request object that resulted in this handler being run.
  * @returns {string} JSON for the browser.
  */
-const getForChannels = async( request ) => {
-
+const getForChannels = async (request) => {
   try {
     const channels = await points.getAllChannels();
 
-    console.log( 'Sending all Channels!' );
+    console.log("Sending all Channels!");
     return channels;
-  } catch ( err ) {
-    console.error( err.message );
+  } catch (err) {
+    console.error(err.message);
   }
-
 }; // GetForChannels.
 
 /**
@@ -293,28 +287,30 @@ const getForChannels = async( request ) => {
  * @param {object} request The Express request object that resulted in this handler being run.
  * @returns {string} JSON for the browser.
  */
-const getAllScoresFromUser = async( request ) => {
-
+const getAllScoresFromUser = async (request) => {
   try {
     const startDate = request.query.startDate;
     const endDate = request.query.endDate;
     const channelId = request.query.channel;
     // console.log(request.query);
-    const fromUsers = await points.getAllScoresFromUser( startDate, endDate, channelId );
+    const fromUsers = await points.getAllScoresFromUser(
+      startDate,
+      endDate,
+      channelId
+    );
     // console.log("FROMUSERS: " + JSON.stringify(fromUsers));
 
-    const users = await userScores( fromUsers );
+    const users = await userScores(fromUsers);
     // console.log("USERS: " + JSON.stringify(users));
     // const users = await userScores( fromUsers );
 
-    console.log( 'Sending all From Users Scores!');
+    console.log("Sending all From Users Scores!");
     // console.log("FROM USERS: " + JSON.stringify(users));
 
     return users;
-  } catch ( err ) {
-    console.error( err.message );
+  } catch (err) {
+    console.error(err.message);
   }
-
 }; // getAllScoresFromUser.
 
 /**
@@ -323,31 +319,31 @@ const getAllScoresFromUser = async( request ) => {
  * @param {object} request The Express request object that resulted in this handler being run.
  * @returns {string} JSON for the browser.
  */
-const getKarmaFeed = async( request ) => {
-
+const getKarmaFeed = async (request) => {
   try {
-
-    const itemsPerPage = request.query.itemsPerPage;
+    const itsPerPage = request.query.itemsPerPage;
     const page = request.query.page;
     const searchString = request.query.searchString;
     const startDate = request.query.startDate;
     const endDate = request.query.endDate;
     const channelId = request.query.channel;
-    const feed = await points.getKarmaFeed(itemsPerPage, page, searchString, channelId, startDate, endDate);
-    console.log( 'Sending Karma Feed!' );
+    const feed = await points.getKarmaFeed(
+      itemsPerPage,
+      page,
+      searchString,
+      channelId,
+      startDate,
+      endDate
+    );
+    console.log("Sending Karma Feed!");
 
     return feed;
-
-  } catch ( err ) {
-    console.error( err.message );
+  } catch (err) {
+    console.error(err.message);
   }
-
 }; // getKarmaFeed.
 
-
-
-const getUserProfile = async( request ) => {
-
+const getUserProfile = async (request) => {
   try {
     const username = request.query.username;
     const fromTo = request.query.fromTo;
@@ -357,9 +353,9 @@ const getUserProfile = async( request ) => {
     const page = request.query.page;
     const searchString = request.query.searchString;
 
-    const scores = await points.retrieveTopScores( null, null, channel );
-    const users = await rankItems( scores, 'users', 'object' );
-    const userId = await points.getUserId( username );
+    const scores = await points.retrieveTopScores(null, null, channel);
+    const users = await rankItems(scores, "users", "object");
+    const userId = await points.getUserId(username);
 
     let userRank = 0;
     for (const el of users) {
@@ -368,28 +364,57 @@ const getUserProfile = async( request ) => {
       }
     }
 
-    const nameSurname = await points.getName( username );
-    const karmaScore = await points.getAll( username, 'from', channel );
-    const karmaGiven = await points.getAll( username, 'to', channel );
-    const activityChartIn = await points.getAll( username, 'from', channel );
-    const activityChartOut = await points.getAll( username, 'to', channel );
-    const getAll = await points.getAll( username, fromTo, channel, itemsPerPage, page, searchString );
-
+    const nameSurname = await points.getName(username);
+    const karmaScore = await points.getAll(username, "from", channel);
+    const karmaGiven = await points.getAll(username, "to", channel);
+    const activityChartIn = await points.getAll(username, "from", channel);
+    const activityChartOut = await points.getAll(username, "to", channel);
+    const getAll = await points.getAll(
+      username,
+      fromTo,
+      channel,
+      itemsPerPage,
+      page,
+      searchString
+    );
 
     // Count Karma Points from users
     let count = [];
-    karmaScore.feed.map(u => u.fromUser).forEach(fromUser => { count[fromUser] = ( count[fromUser] || 0 ) + 1 });
-    let karmaDivided = Object.entries(count).map(([key, value]) => ({ name: key, value})); //: Math.round((value/karmaScore.count) * 100), count: value 
+    karmaScore.feed
+      .map((u) => u.fromUser)
+      .forEach((fromUser) => {
+        count[fromUser] = (count[fromUser] || 0) + 1;
+      });
+    let karmaDivided = Object.entries(count).map(([key, value]) => ({
+      name: key,
+      value,
+    })); //: Math.round((value/karmaScore.count) * 100), count: value
 
     // Count All Received Karma Points by Days
     let countIn = [];
-    activityChartIn.feed.map(d => d.timestamp.toISOString().split('T')[0]).forEach(fromUser => { countIn[fromUser] = ( countIn[fromUser] || 0 ) + 1 });
-    let chartDatesIn = Object.entries(countIn).map(([key, value]) => ({ date: key, received: value, sent: 0}));
+    activityChartIn.feed
+      .map((d) => d.timestamp.toISOString().split("T")[0])
+      .forEach((fromUser) => {
+        countIn[fromUser] = (countIn[fromUser] || 0) + 1;
+      });
+    let chartDatesIn = Object.entries(countIn).map(([key, value]) => ({
+      date: key,
+      received: value,
+      sent: 0,
+    }));
 
     // Count All Sent Karma Points by Days
     let countOut = [];
-    activityChartOut.feed.map(d => d.timestamp.toISOString().split('T')[0]).forEach(fromUser => { countOut[fromUser] = ( countOut[fromUser] || 0 ) + 1 });
-    let chartDatesOut = Object.entries(countOut).map(([key, value]) => ({ date: key, received: 0, sent: value}));
+    activityChartOut.feed
+      .map((d) => d.timestamp.toISOString().split("T")[0])
+      .forEach((fromUser) => {
+        countOut[fromUser] = (countOut[fromUser] || 0) + 1;
+      });
+    let chartDatesOut = Object.entries(countOut).map(([key, value]) => ({
+      date: key,
+      received: 0,
+      sent: value,
+    }));
 
     // Add Sent & Received Karma by Days Into Array
     let sentReceived = chartDatesIn.concat(chartDatesOut);
@@ -399,28 +424,34 @@ const getUserProfile = async( request ) => {
     let combineDates = [];
 
     for (let date in sentReceived) {
-    
       let oa = sentReceived[date];
       let ob = b[oa.date];
-    
-      if (!ob) combineDates.push(ob = b[oa.date] = {});
-    
-      for (let k in oa) ob[k] = k==='date' ? oa.date : (ob[k]||0)+oa[k];
 
+      if (!ob) combineDates.push((ob = b[oa.date] = {}));
+
+      for (let k in oa) ob[k] = k === "date" ? oa.date : (ob[k] || 0) + oa[k];
     }
 
     // Sort Dates
-    combineDates.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    combineDates.sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
 
-    console.log('Sending user name and surname.');
+    console.log("Sending user name and surname.");
 
-    return {...getAll, nameSurname, allKarma: karmaScore.count, karmaGiven: karmaGiven.count, userRank: userRank, karmaDivided: karmaDivided, activity: combineDates};
-    
+    return {
+      ...getAll,
+      nameSurname,
+      allKarma: karmaScore.count,
+      karmaGiven: karmaGiven.count,
+      userRank: userRank,
+      karmaDivided: karmaDivided,
+      activity: combineDates,
+    };
   } catch (err) {
     console.error(err.message);
   }
-
-} // getUserProfile
+}; // getUserProfile
 
 /**
  * The default handler for this command when invoked over Slack.
@@ -429,8 +460,8 @@ const getUserProfile = async( request ) => {
  * @param {*} request See the documentation for getForSlack.
  * @returns {*} See the documentation for getForSlack.
  */
-const handler = async( event, request ) => {
-  return getForSlack( event, request );
+const handler = async (event, request) => {
+  return getForSlack(event, request);
 };
 
 module.exports = {
@@ -442,5 +473,5 @@ module.exports = {
   getForChannels,
   getAllScoresFromUser,
   getKarmaFeed,
-  getUserProfile
+  getUserProfile,
 };

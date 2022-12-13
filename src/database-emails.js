@@ -1,12 +1,12 @@
 /* eslint-disable max-len */
-'use strict';
-require( 'dotenv' ).config();
-const mysql = require( 'mysql' );
+"use strict";
+require("dotenv").config();
+const mysql = require("mysql");
 // const { setSlackClient, getUserEmail, getUsers, getUserList } = require('./slack');
-const slack = require( './slack' );
-const slackClient = require( '@slack/client' );
+const slack = require("./slack");
+const slackClient = require("@slack/client");
 const SLACK_OAUTH_ACCESS_TOKEN = process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN;
-slack.setSlackClient( new slackClient.WebClient( SLACK_OAUTH_ACCESS_TOKEN ) );
+slack.setSlackClient(new slackClient.WebClient(SLACK_OAUTH_ACCESS_TOKEN));
 
 let users = [];
 const mysqlConfig = {
@@ -21,7 +21,7 @@ const mysqlConfig = {
   // eslint-disable-next-line no-process-env
   database: process.env.DATABASE_NAME,
   // eslint-disable-next-line no-process-env
-  multipleStatements: true
+  multipleStatements: true,
 };
 
 // console.log( mysqlConfig );
@@ -32,13 +32,13 @@ const mysqlConfig = {
  * @returns {Promise}
  *   The promise.
  */
-const prepareDatabase = async() => {
+const prepareDatabase = async () => {
   await getAllIds();
   await addEmails();
-  console.log( 'Emails Added' );
-  setTimeout((function() {
+  console.log("Emails Added");
+  setTimeout(function () {
     return process.exit(22);
-  }), 500);
+  }, 500);
 };
 
 /**
@@ -48,30 +48,29 @@ const prepareDatabase = async() => {
  *   The promise.
  */
 const getAllIds = () => {
-  return new Promise( function( resolve, reject ) {
-    const db = mysql.createConnection( mysqlConfig );
-    let str = 'SELECT user_id FROM user';
+  return new Promise(function (resolve, reject) {
+    const db = mysql.createConnection(mysqlConfig);
+    let str = "SELECT user_id FROM user";
 
-    const query = mysql.format( str );
-    db.query( query, async function( err, result ) {
-      if ( err ) {
-        console.log( db.sql );
-        reject( err );
+    const query = mysql.format(str);
+    db.query(query, async function (err, result) {
+      if (err) {
+        console.log(db.sql);
+        reject(err);
       } else {
         for (let index = 0; index < result.length; index++) {
           const email = await slack.getUserEmail(result[index].user_id);
           let user = {
-            "id": result[index].user_id,
-            "email": email
-          }
+            id: result[index].user_id,
+            email: email,
+          };
           users.push(user);
         }
-        resolve( result );
+        resolve(result);
       }
     });
-
   });
-}
+};
 
 /**
  * Creates emails table.
@@ -79,29 +78,34 @@ const getAllIds = () => {
  * @returns {Promise}
  *   Returned promise.
  */
-const addEmails = async() => {
-  return new Promise( function( resolve, reject ) {
-    const db = mysql.createConnection( mysqlConfig );
-    let str = '';
-    
+const addEmails = async () => {
+  return new Promise(function (resolve, reject) {
+    const db = mysql.createConnection(mysqlConfig);
+    let str = "";
+
     for (let index = 0; index < users.length; index++) {
       if (users[index].email !== undefined) {
-        str += "UPDATE user SET user_email = '" + users[index].email + "' WHERE user_id = '" + users[index].id + "'; ";
+        str +=
+          "UPDATE user SET user_email = '" +
+          users[index].email +
+          "' WHERE user_id = '" +
+          users[index].id +
+          "'; ";
       }
     }
 
-    const query = mysql.format( str );
-    db.query( query, function( err, result ) {
-      if ( err ) {
-        reject( err );
+    const query = mysql.format(str);
+    db.query(query, function (err, result) {
+      if (err) {
+        reject(err);
       } else {
-        console.log( result );
-        resolve( result );
+        console.log(result);
+        resolve(result);
       }
     });
   });
-}
+};
 
-prepareDatabase().catch( function( reason ) {
-  console.log( reason );
+prepareDatabase().catch(function (reason) {
+  console.log(reason);
 });

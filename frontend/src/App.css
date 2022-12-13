@@ -1,16 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Nunito:wght@400;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Nunito:wght@400;700&display=swap");
 
-body, html {
+body,
+html {
   height: 100%;
   padding: 0;
   margin: 0;
 }
 
 body {
-  background: #FFFFFF;
+  background: #ffffff;
   background-size: cover;
   color: #032633;
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   font-weight: 400;
 }
 
@@ -23,7 +24,10 @@ body {
 }
 
 .card-deck {
-  color: #FFFFFF;
+  color: #ffffff;
+}
+
+.login-page {
 }
 
 .card-deck .podium {
@@ -36,19 +40,19 @@ body {
 }
 
 .first {
-  background: #E0BD3F;
+  background: #e0bd3f;
 }
 .second {
-  background: #D4CDC7;
+  background: #d4cdc7;
 }
 .third {
-  background: #A85008;
+  background: #a85008;
 }
 
 .navbar {
   border-bottom: 1px solid rgba(160, 175, 181, 0.3);
   /*min-height: 80px;*/
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
   font-size: 15px;
   padding: 15px 15px;
 }
@@ -110,7 +114,7 @@ th {
 }
 
 .BiArrow--To {
-  color: #26ADE4;
+  color: #26ade4;
 }
 
 .BiArrow--mr {
