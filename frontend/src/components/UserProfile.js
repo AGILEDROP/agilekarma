@@ -1,17 +1,17 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import axios from "axios";
 import ReactPaginate from "react-paginate";
 import { Input } from "reactstrap";
 
-import KarmaSentChart from './KarmaSentChart';
-import ActivityChart from './ActivityChart';
+import KarmaSentChart from "./KarmaSentChart";
+import ActivityChart from "./ActivityChart";
+import { verifyAuth } from "../hooks/verifyAuth";
 
 import { BiArrowFromRight, BiArrowFromLeft } from "react-icons/bi";
 
 import _ from "lodash";
 
-const UserProfile = props => {
+const UserProfile = (props) => {
   let location = useLocation();
   const user_username = location.pathname.split("/")[2];
 
@@ -44,13 +44,11 @@ const UserProfile = props => {
         currentPage: selectedPage,
       };
     });
-
   };
 
   useEffect(() => {
-
     const getChannels = async () => {
-      await axios
+      await verifyAuth()
         .get(channelsURL)
         .then((res) => {
           setListChannels(res.data);
@@ -58,12 +56,11 @@ const UserProfile = props => {
         .catch((err) => console.error(err.message));
     };
     getChannels();
-
-  },[channelsURL]);
+  }, [channelsURL]);
 
   const [searchValue, setSearchValue] = useState("");
   const debounce = useCallback(
-    _.debounce(_searchVal => {
+    _.debounce((_searchVal) => {
       handlePageClick({ selected: 0 });
       setSearchValue(_searchVal);
     }, 500),
@@ -75,10 +72,8 @@ const UserProfile = props => {
   }, [props.search]);
 
   useEffect(() => {
-
     const userProfile = async () => {
-
-      await axios
+      await verifyAuth()
         .get(getUserURL, {
           params: {
             username: user_username,
@@ -86,7 +81,7 @@ const UserProfile = props => {
             channelProfile: selectedChannel,
             itemsPerPage: pagination.perPage,
             page: pagination.currentPage + 1,
-            searchString: searchValue
+            searchString: searchValue,
           },
         })
         .then((res) => {
@@ -102,8 +97,13 @@ const UserProfile = props => {
         .catch((err) => console.error(err.message));
     };
     userProfile();
-
-  }, [pagination.currentPage, location.search, selectedChannel, fromTo, searchValue]);
+  }, [
+    pagination.currentPage,
+    location.search,
+    selectedChannel,
+    fromTo,
+    searchValue,
+  ]);
 
   return (
     <>
@@ -154,34 +154,34 @@ const UserProfile = props => {
                 </div>
                 <div className="col-3">
                   <Input
-                      type="select"
-                      name="select"
-                      id="exampleSelect"
-                      value={selectedChannel}
-                      onChange={(e) => setSelectedChannel(e.target.value)}
-                    >
-                      {listChannels ? (
-                        <option value={"all"}>All Channels</option>
-                      ) : null}
-                      {listChannels ? (
-                        listChannels.map((el, index) => (
-                          <option key={index} value={el.channel_id}>
-                            #{el.channel_name}
-                          </option>
-                        ))
-                      ) : (
-                        <option>No Channels</option>
-                      )}
-                    </Input>
+                    type="select"
+                    name="select"
+                    id="exampleSelect"
+                    value={selectedChannel}
+                    onChange={(e) => setSelectedChannel(e.target.value)}
+                  >
+                    {listChannels ? (
+                      <option value={"all"}>All Channels</option>
+                    ) : null}
+                    {listChannels ? (
+                      listChannels.map((el, index) => (
+                        <option key={index} value={el.channel_id}>
+                          #{el.channel_name}
+                        </option>
+                      ))
+                    ) : (
+                      <option>No Channels</option>
+                    )}
+                  </Input>
                 </div>
                 <div className="col-3">
                   <Input
-                      type="select"
-                      name="select"
-                      id="exampleSelect"
-                      value={fromTo}
-                      onChange={(e) => setFromTo(e.target.value)}
-                    >
+                    type="select"
+                    name="select"
+                    id="exampleSelect"
+                    value={fromTo}
+                    onChange={(e) => setFromTo(e.target.value)}
+                  >
                     <option value={"all"}>All Karma Points</option>
                     <option value={"from"}>Karma Points Received</option>
                     <option value={"to"}>Karma Points Sent</option>
@@ -191,53 +191,50 @@ const UserProfile = props => {
               <div className="row mt-5">
                 <div className="col-md-3"></div>
                 <div className="col-sm-4 col-md-2">
-                    <div className="score-item">
-                      Rank
-                      <br />
-                      <h3>{getUser === undefined ? null : getUser.userRank}</h3>
-                    </div>
+                  <div className="score-item">
+                    Rank
+                    <br />
+                    <h3>{getUser === undefined ? null : getUser.userRank}</h3>
                   </div>
-                  <div className="col-sm-4 col-md-2">
-                    <div className="score-item">
-                      Karma Received
-                      <br />
-                      <h3>{getUser === undefined ? null : getUser.allKarma}</h3>
-                    </div>
+                </div>
+                <div className="col-sm-4 col-md-2">
+                  <div className="score-item">
+                    Karma Received
+                    <br />
+                    <h3>{getUser === undefined ? null : getUser.allKarma}</h3>
                   </div>
-                  <div className="col-sm-4 col-md-2">
-                    <div className="score-item">
-                      Karma Sent
-                      <br />
-                      <h3>{getUser === undefined ? null : getUser.karmaGiven}</h3>
-                    </div>
+                </div>
+                <div className="col-sm-4 col-md-2">
+                  <div className="score-item">
+                    Karma Sent
+                    <br />
+                    <h3>{getUser === undefined ? null : getUser.karmaGiven}</h3>
                   </div>
-                  <div className="col-md-3"></div>
+                </div>
+                <div className="col-md-3"></div>
               </div>
               <div className="row mt-5">
                 <div className="col-sm-12 col-md-6">
-                    {getUser.feed.length === 0 ? 
-                    null 
-                    : 
+                  {getUser.feed.length === 0 ? null : (
                     <div className="score-item">
-                    
-                    {getUser.karmaDivided.length === 0 ? <div className="length0">No Points Received</div>
-                    :
-                    <>
-                      <h5>Points Received</h5>
-                      <KarmaSentChart karma={getUser.karmaDivided} />
-                    </>
-                    }
+                      {getUser.karmaDivided.length === 0 ? (
+                        <div className="length0">No Points Received</div>
+                      ) : (
+                        <>
+                          <h5>Points Received</h5>
+                          <KarmaSentChart karma={getUser.karmaDivided} />
+                        </>
+                      )}
                     </div>
-                    }
+                  )}
                 </div>
                 <div className="col-sm-12 col-md-6">
-                    {getUser.feed.length === 0 ? 
-                    null :
+                  {getUser.feed.length === 0 ? null : (
                     <div className="score-item">
-                    <h5>Activity</h5>
+                      <h5>Activity</h5>
                       <ActivityChart feed={getUser.activity} />
                     </div>
-                    }
+                  )}
                 </div>
               </div>
             </div>

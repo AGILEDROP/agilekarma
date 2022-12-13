@@ -51,11 +51,6 @@ const NavBar = (props) => {
                 Feed
               </Link>
             </NavItem>
-            <NavItem>
-              <Link to={"/login"} onClick={handleLogout} className="nav-link">
-                Log out
-              </Link>
-            </NavItem>
           </Nav>
 
           <input
@@ -66,6 +61,10 @@ const NavBar = (props) => {
             value={props.search}
             onChange={(e) => props.onChange(e.target.value)}
           />
+
+          <Link to={"/login"} onClick={handleLogout} className="btn-logout">
+            Log out
+          </Link>
         </Collapse>
       </div>
     </Navbar>

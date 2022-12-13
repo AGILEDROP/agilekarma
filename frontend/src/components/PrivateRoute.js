@@ -9,19 +9,16 @@ const PrivateRoute = ({ component: Component, ...rest }) => {
   useEffect(() => {
     if (accessToken != null) {
       setIsLogin(true);
+    } else {
+      setIsLogin(false);
     }
   }, [accessToken]);
 
-  //if (isLogin) return null;
   return (
     <Route
       {...rest}
       render={(props) =>
-        isLogin ? (
-          <Component {...props} {...rest} search={rest.search} />
-        ) : (
-          <Redirect to={{ pathname: "/login" }} />
-        )
+        isLogin && <Component {...props} {...rest} search={rest.search} />
       }
     />
   );

@@ -164,9 +164,19 @@ const bootstrap = (options = {}) => {
   */
 
   const requireAuth = async (req, res, next) => {
-    const authorization = req.headers;
-    console.log(authorization);
-    next();
+    const authorization = req.headers.authorization;
+    try {
+      const { data } = await axios({
+        method: "post",
+        url: `https://www.googleapis.com/oauth2/v3/userinfo?alt=json&access_token=${authorization}`,
+      });
+
+      if (data) {
+        next();
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   // route to receive authorization token from the frontend
