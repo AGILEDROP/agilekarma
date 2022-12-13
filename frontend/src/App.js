@@ -15,7 +15,7 @@ const App = (props) => {
   const [searchTerm, setSearchTerm] = useState("");
 
   return (
-    <GoogleOAuthProvider clientId=>
+    <GoogleOAuthProvider clientId={`${process.env.REACT_APP_GOOGLE_CLIENT_ID}`}>
       <Router>
         <PrivateRoute
           path="/"
