@@ -1,11 +1,21 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import GoogleButton from "react-google-button";
 import { useAuthContext } from "../hooks/useAuthContext";
-
+import { Redirect } from "react-router-dom";
 const Login = (props) => {
-  const { dispatch } = useAuthContext();
+  const [isLogin, setIsLogin] = useState(false);
+  const { dispatch, accessToken } = useAuthContext();
+
+  useEffect(() => {
+    if (accessToken != null) {
+      setIsLogin(true);
+    } else {
+      setIsLogin(false);
+    }
+  }, [accessToken]);
+
   const googleLogin = useGoogleLogin({
     flow: "auth-code",
     onSuccess: async (response) => {
@@ -31,6 +41,10 @@ const Login = (props) => {
     },
     onError: (error) => console.log(error),
   });
+
+  if (isLogin) {
+    return <Redirect to="/" />;
+  }
   return (
     <div className="login-page">
       <h2>Welcome to Agilekarma</h2>
