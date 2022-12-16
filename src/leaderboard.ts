@@ -15,7 +15,6 @@ import { getChannelName, getUserName, sendEphemeral } from './slack.js';
 import {
   getAllChannels,
   getName,
-  getUserId,
   retrieveTopScores,
   getAll,
   getAllScoresFromUser as getAllScoresFromUserPoints,
@@ -264,11 +263,11 @@ export const getUserProfile = async (request: Request): Promise<any> => {
       channelProfile: channel,
     } = request.query as Record<string, string>;
     const scores = await retrieveTopScores(channel);
-    const [users, userId] = await Promise.all([rankItems(scores, 'users', 'object'), getUserId(username)]);
+    const users = await rankItems(scores, 'users', 'object');
 
     let userRank = 0;
     for (const el of users) {
-      if (el.item_id === userId) {
+      if (el.item_id === username) {
         userRank = el.rank;
       }
     }
