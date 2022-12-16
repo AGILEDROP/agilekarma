@@ -1,19 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { Route, Redirect } from "react-router-dom";
-import { useAuthContext } from "../hooks/useAuthContext";
+import React from "react";
+import { Route } from "react-router-dom";
 import Login from "../pages/Login";
+import { useSetLogin } from "../hooks/useSetLogin";
 
 const PrivateRoute = ({ component: Component, ...rest }) => {
-  const [isLogin, setIsLogin] = useState(false);
-  const { accessToken } = useAuthContext();
-
-  useEffect(() => {
-    if (accessToken != null) {
-      setIsLogin(true);
-    } else {
-      setIsLogin(false);
-    }
-  }, [accessToken]);
+  const isLogin = useSetLogin();
 
   return (
     <Route

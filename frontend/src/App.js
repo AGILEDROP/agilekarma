@@ -15,20 +15,11 @@ import KarmaFeed from "./pages/KarmaFeed";
 import UserProfile from "./pages/UserProfile";
 import Login from "./pages/Login";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { useAuthContext } from "./hooks/useAuthContext";
+import { useSetLogin } from "./hooks/useSetLogin";
 
 const App = (props) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [isLogin, setIsLogin] = useState(false);
-  const { accessToken } = useAuthContext();
-
-  useEffect(() => {
-    if (accessToken != null) {
-      setIsLogin(true);
-    } else {
-      setIsLogin(false);
-    }
-  }, [accessToken]);
+  const isLogin = useSetLogin();
 
   return (
     <GoogleOAuthProvider clientId={`${process.env.REACT_APP_GOOGLE_CLIENT_ID}`}>

@@ -1,20 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import GoogleButton from "react-google-button";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { Redirect } from "react-router-dom";
-const Login = (props) => {
-  const [isLogin, setIsLogin] = useState(false);
-  const { dispatch, accessToken } = useAuthContext();
+import { useSetLogin } from "../hooks/useSetLogin";
 
-  useEffect(() => {
-    if (accessToken != null) {
-      setIsLogin(true);
-    } else {
-      setIsLogin(false);
-    }
-  }, [accessToken]);
+const Login = (props) => {
+  const { dispatch } = useAuthContext();
+
+  const isLogin = useSetLogin();
 
   const googleLogin = useGoogleLogin({
     flow: "auth-code",
