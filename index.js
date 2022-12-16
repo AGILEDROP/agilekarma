@@ -55,40 +55,6 @@ const bootstrap = (options = {}) => {
     options.slack || new slackClient.WebClient(SLACK_OAUTH_ACCESS_TOKEN)
   );
 
-  passport.serializeUser((user, cb) => {
-    cb(null, user);
-  });
-
-  passport.deserializeUser((user, cb) => {
-    cb(null, user);
-  });
-
-  passport.use(
-    new GoogleStrategy(
-      {
-        clientID: google_id,
-        clientSecret: google_secret,
-        callbackURL: "/auth/google/callback",
-      },
-      async (accessToken, refreshToken, profile, done) => {
-        try {
-          const verifyEmail = await points.verifyEmail(profile._json.email);
-
-          // Users that are in the db can login:
-          // if (verifyEmail) {
-          //   return done(null, profile._json.email);
-          // } else {
-          //   return done(null);
-          // }
-
-          return done(null, profile._json.email);
-        } catch (err) {
-          console.error(err.message);
-        }
-      }
-    )
-  );
-
   server.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", FRONTEND_URL); // update to match the domain you will make the request from
     // res.header("Access-Control-Allow-Origin", '*');
@@ -112,18 +78,6 @@ const bootstrap = (options = {}) => {
   //   'credentials': true,
   //   'origin': ['http://127.0.0.1:3000', 'http://localhost:3000', 'http://localhost:5000'], // here goes Frontend IP
   // }));
-
-  server.use(passport.initialize());
-  server.use(passport.session());
-
-  server.get(
-    "/auth/google",
-    passport.authenticate("google", {
-      scope: ["profile", "email"],
-      accessType: "offline",
-      approvalPrompt: "force",
-    })
-  );
 
   /** Google OAuth2 authentication
    *
@@ -193,26 +147,6 @@ const bootstrap = (options = {}) => {
     }
   });
 
-  server.get(
-    "/auth/google/callback",
-    passport.authenticate("google", { failureRedirect: "/login" }),
-    function (req, res) {
-      // Successful authentication, redirect home.
-      res.redirect("http://localhost:3000/");
-    }
-  );
-
-  server.get("/checkAuthentication", (req, res, next) => {
-    console.log("IS AUTH: " + req.isAuthenticated());
-
-    if (req.isAuthenticated()) {
-      res.sendStatus(200);
-      return next();
-    }
-
-    res.sendStatus(403);
-  });
-
   server.enable("trust proxy");
   server.get("/", app.handleGet);
   server.post("/", app.handlePost);
@@ -232,11 +166,6 @@ const bootstrap = (options = {}) => {
   server.get("/fromusers", requireAuth, app.handleGet);
   server.get("/karmafeed", requireAuth, app.handleGet);
   server.get("/userprofile", requireAuth, app.handleGet);
-
-  server.get("/logout", (req, res) => {
-    req.logout();
-    res.redirect("http://localhost:3000/login");
-  });
 
   return server.listen(PORT, () => {
     console.log("Listening on port " + PORT + ".");

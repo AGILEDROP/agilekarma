@@ -6,16 +6,15 @@ import { useSetLogin } from "../hooks/useSetLogin";
 const PrivateRoute = ({ component: Component, ...rest }) => {
   const isLogin = useSetLogin();
 
+  if (!isLogin) {
+    return <Route component={Login} />;
+  }
   return (
     <Route
       {...rest}
-      render={(props) =>
-        isLogin ? (
-          <Component {...props} {...rest} search={rest.search} />
-        ) : (
-          <Login />
-        )
-      }
+      render={(props) => (
+        <Component {...props} {...rest} search={rest.search} />
+      )}
     />
   );
 };
