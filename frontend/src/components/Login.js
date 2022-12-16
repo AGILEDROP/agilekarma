@@ -47,7 +47,8 @@ const Login = (props) => {
   }
   return (
     <div className="login-page">
-      <h2>Welcome to Agilekarma</h2>
+      <h2>Welcome to AgileKarma</h2>
+      <p></p>
       <GoogleButton onClick={() => googleLogin()} />
     </div>
   );
