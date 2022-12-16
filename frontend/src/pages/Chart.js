@@ -6,7 +6,7 @@ import { getUnixTime, endOfDay, startOfMonth, endOfMonth } from "date-fns";
 
 import _ from "lodash";
 
-import DateRange from "./DateRange";
+import DateRange from "../components/DateRange";
 import { verifyAuth } from "../hooks/verifyAuth";
 
 const Chart = (props) => {

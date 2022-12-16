@@ -3,7 +3,7 @@ import { useHistory } from "react-router-dom";
 import queryString from "query-string";
 import ReactPaginate from "react-paginate";
 
-import DateRange from "./DateRange";
+import DateRange from "../components/DateRange";
 
 import { getUnixTime, endOfDay } from "date-fns";
 

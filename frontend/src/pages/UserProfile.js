@@ -3,8 +3,8 @@ import { useLocation } from "react-router-dom";
 import ReactPaginate from "react-paginate";
 import { Input } from "reactstrap";
 
-import KarmaSentChart from "./KarmaSentChart";
-import ActivityChart from "./ActivityChart";
+import KarmaSentChart from "../components/KarmaSentChart";
+import ActivityChart from "../components/ActivityChart";
 import { verifyAuth } from "../hooks/verifyAuth";
 
 import { BiArrowFromRight, BiArrowFromLeft } from "react-icons/bi";
