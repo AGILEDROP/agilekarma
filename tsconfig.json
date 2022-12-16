@@ -19,6 +19,6 @@
     "outDir": "./dist"
   },
   "files": ["index.ts"],
-  "include": ["src/**/*.ts", "src/*.ts"],
+  "include": ["src/**/*.ts", "src/*.ts", "knexfile.ts"],
   "exclude": ["**/*.spec.ts"]
 }

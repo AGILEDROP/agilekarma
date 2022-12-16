@@ -253,7 +253,7 @@ export const handleEvent = (event: Event, request: Request) => {
   const eventName = camelCase(event.type);
   if (handlers[eventName] instanceof Function) {
     handlers[eventName](event, request);
+  } else {
+    console.warn(`Invalid event received: ${event.type}`);
   }
-
-  console.warn(`Invalid event received: ${event.type}`);
 };

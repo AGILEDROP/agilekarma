@@ -1,19 +1,15 @@
-import { createConnection, format } from 'mysql';
-import mysqlConfig from './database/mysql-config.js';
+import knexInstance from './database/knex.js';
 
 const addUsername = () => new Promise((resolve, reject) => {
-  const db = createConnection(mysqlConfig);
-  const str = "UPDATE user SET user_username = LOWER( REPLACE( user_name, ' ', '' ) ) WHERE (user_username = '' OR user_username IS NULL)";
-  const query = format(str, []);
-
-  db.query(query, (err, result) => {
-    if (err) {
-      reject(err);
-    } else {
-      console.log(result);
-      resolve(result);
-    }
-  });
+  knexInstance('user')
+    .where('user_username', '=', '')
+    .orWhereNull('user_username')
+    .update({ user_username: knexInstance.raw('LOWER( REPLACE( user_name, \' \', \'\' ) )', ['user_name']) })
+    .then((result) => resolve(result))
+    .catch((error) => {
+      console.error(error);
+      reject(error);
+    });
 });
 
 /**
