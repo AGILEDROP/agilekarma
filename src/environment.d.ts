@@ -9,6 +9,9 @@ declare global {
       SCOREBOT_LEADERBOARD_URL: string,
       SCOREBOT_PORT: string
       SCOREBOT_USE_SSL: string
+      SLACK_API_TYPE: 'real' | 'mock'
+      MOCK_SLACK_PORT: string
+      SLACK_VERIFICATION_TOKEN: string
       ENV: 'test' | 'dev' | 'prod';
     }
   }

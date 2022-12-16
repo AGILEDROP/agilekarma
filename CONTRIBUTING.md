@@ -62,8 +62,6 @@ Many linting issues can be automatically fixed by running `yarn fix`.
 ## Local docker setup
 This bot comes shipped with possibility to run it in docker.
 
-ts-node-esm  ./node_modules/.bin/knex migrate:make create_tables -x ts
-
 
  1. Copy the example.env to .env
  2. Fill the .env file
@@ -71,3 +69,25 @@ ts-node-esm  ./node_modules/.bin/knex migrate:make create_tables -x ts
  4. (on the first time setup) ssh into nodejs container run `npm run db-migrate-latest` to prepare the database structure.
  5. Visit http://${PROJECT_NAME}.localhost:4551/ to get the ngrok url
  6. Paste the url into slack api Event subscriptions.
+
+## Local testing slack api
+
+It's possible to test the project without connecting to slack servers
+- SLACK_API_TYPE=mock must be set in the .env file, also MOCK_API_PORT
+- Slack credentials are also needed, but can be anything
+- to run the mock server, ssh into the nodejs container and run `npm run mock_serve`
+
+Talking to the mock slack api:
+- possibly `chmod +x scontrol` in the project root
+- ssh into nodejs container
+- `./scontrol fromUser toUser channel ++` to send an event
+- `./scontrol challenge` to send the challenge request
+
+There are predefined users and channels already in the mock slack api:
+- users: janez.kranjski, bobby, slackbot, agilekarma_bot
+- channels: random, general
+
+When sending an event using a user or a channel that don't exist yet in the api, they will be created,
+however they will be lost when closing the mock server.
+Same names can be used later, but they will have a different slackId and will thus be created anew in the
+agilekarma database.

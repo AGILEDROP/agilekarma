@@ -1,4 +1,4 @@
-import slackClient from '@slack/client';
+import slackClient, { LogLevel } from '@slack/client';
 import bodyParser from 'body-parser';
 import * as dotenv from 'dotenv';
 import express from 'express';
@@ -12,14 +12,21 @@ const {
   SCOREBOT_LEADERBOARD_URL: leaderboardUrl = '',
   SCOREBOT_PORT: port = '80',
   SCOREBOT_USE_SSL: useHttps = '0',
+  MOCK_SLACK_PORT: mockApiPort = '5010',
+  SLACK_API_TYPE: slackApiType,
 } = process.env;
 
 const protocol = useHttps !== '1' ? 'http://' : 'https://';
 const frontendUrl = protocol + leaderboardUrl;
 const server = express();
-// @ts-ignore
-setSlackClient(new slackClient.WebClient(accessToken));
 
+if (slackApiType === 'mock') {
+  // @ts-ignore
+  setSlackClient(new slackClient.WebClient(accessToken, { slackApiUrl: `http://localhost:${mockApiPort}/api/`, logLevel: LogLevel.DEBUG }));
+} else {
+  // @ts-ignore
+  setSlackClient(new slackClient.WebClient(accessToken));
+}
 server.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', frontendUrl);
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
