@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { Request, Response } from 'express';
 import { createEvent, createChallenge } from './slack_events.js';
-import { logRequest, logResponseError } from '../src/app.js';
+import { logRequest, logResponseError } from '../app.js';
 import Channels from './mock_data/channels.js';
 import Users from './mock_data/user_list.js';
 

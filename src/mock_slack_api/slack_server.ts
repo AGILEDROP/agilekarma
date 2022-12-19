@@ -1,7 +1,7 @@
 import bodyParser from 'body-parser';
 import * as dotenv from 'dotenv';
 import express, { RequestHandler } from 'express';
-import { logRequest } from '../src/app.js';
+import { logRequest } from '../app.js';
 import Channels from './mock_data/channels.js';
 import Users from './mock_data/user_list.js';
 import { postEphemeral, sendChallenge, sendEvent } from './slack_points.js';
