@@ -12,6 +12,8 @@ declare global {
       SLACK_API_TYPE: 'real' | 'mock'
       MOCK_SLACK_PORT: string
       SLACK_VERIFICATION_TOKEN: string
+      USER_LIMIT_VOTING_MAX: string,
+      UNDO_TIME_LIMIT: string,
       ENV: 'test' | 'dev' | 'prod';
     }
   }

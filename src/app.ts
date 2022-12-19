@@ -7,10 +7,7 @@ import {
   getKarmaFeed,
   getUserProfile,
 } from './leaderboard.js';
-
-const {
-  SLACK_VERIFICATION_TOKEN: verificationToken = '',
-} = process.env;
+import { verificationToken } from '../config.js';
 
 export const logRequest = (request: Request) => {
   console.log(`${request.ip} ${request.method} ${request.path} ${request.headers['user-agent']}`);

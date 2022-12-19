@@ -21,6 +21,7 @@ import {
   getKarmaFeed as getKarmaFeedPoints,
 } from './points.js';
 import { logResponseError } from './app.js';
+import { useHttps, leaderboardUrl } from '../config.js';
 
 /**
  * Gets the URL for the full leaderboard, including a token to ensure that it is only viewed by
@@ -30,17 +31,16 @@ export const getLeaderboardUrl = (request: Request, channelId: string): string =
   const hostname = request.headers.host;
 
   const params = { channel: channelId };
-  const protocol = process.env.SCOREBOT_USE_SSL !== '1' ? 'http://' : 'https://';
+  const protocol = useHttps !== '1' ? 'http://' : 'https://';
 
   return `${protocol}${hostname}/leaderboard?${querystring.stringify(params)}`;
 };
 
 const getLeaderboardWeb = (request: Request, channelId: string): string => {
   const params = { channel: channelId };
-  const protocol = process.env.SCOREBOT_USE_SSL !== '1' ? 'http://' : 'https://';
-  const frontendUrl = process.env.SCOREBOT_LEADERBOARD_URL;
+  const protocol = useHttps !== '1' ? 'http://' : 'https://';
 
-  return `${protocol}${frontendUrl}?${querystring.stringify(params)}`;
+  return `${protocol}${leaderboardUrl}?${querystring.stringify(params)}`;
 };
 
 /**

@@ -17,12 +17,9 @@ import type {
 } from './types.js';
 import { getChannelName, getUserName } from './slack.js';
 import knexInstance from './database/knex.js';
+import { votingLimit, timeLimit } from '../config.js';
 
 const scoresTableName = 'score';
-const {
-  USER_LIMIT_VOTING_MAX: votingLimit = '300',
-  UNDO_TIME_LIMIT: timeLimit = '300',
-} = process.env;
 
 /**
  * Retrieves all scores for leaderboard.
