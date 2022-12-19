@@ -3,13 +3,9 @@ import crypto from 'crypto';
 import Handlebars from 'handlebars';
 import type { Nullable, PlusMinusEventData } from './types.js';
 import { getUserName } from './slack.js';
+import { secret, verificationToken } from '../config.js';
 
 const templates: Record<string, string> = {};
-
-const {
-  SLACK_VERIFICATION_TOKEN: slackToken,
-  SIGNING_SECRET: secret,
-} = process.env;
 
 const ONE_DAY = 60 * 60 * 24;
 const TOKEN_TTL = ONE_DAY;
@@ -78,12 +74,12 @@ export const getTimeBasedToken = (ts: string): string => {
     throw Error('Timestamp not provided when getting time-based token.');
   }
 
-  if (!slackToken || !secret) {
+  if (!verificationToken || !secret) {
     throw Error('SLACK_VERIFICATION_TOKEN or SIGNING_SECRET env variable missing.');
   }
 
   return crypto
-    .createHmac('sha256', slackToken)
+    .createHmac('sha256', verificationToken)
     .update(ts + secret)
     .digest('hex');
 };

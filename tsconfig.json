@@ -19,6 +19,8 @@
     "outDir": "./dist"
   },
   "files": ["index.ts"],
-  "include": ["src/**/*.ts", "src/*.ts", "knexfile.ts"],
+  "include": ["src/**/*.ts", "src/*.ts", "*.ts",
+    "src/mock_slack_api/**/*.ts"
+  ],
   "exclude": ["**/*.spec.ts"]
 }

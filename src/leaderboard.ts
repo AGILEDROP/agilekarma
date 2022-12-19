@@ -15,13 +15,13 @@ import { getChannelName, getUserName, sendEphemeral } from './slack.js';
 import {
   getAllChannels,
   getName,
-  getUserId,
   retrieveTopScores,
   getAll,
   getAllScoresFromUser as getAllScoresFromUserPoints,
   getKarmaFeed as getKarmaFeedPoints,
 } from './points.js';
 import { logResponseError } from './app.js';
+import { useHttps, leaderboardUrl } from '../config.js';
 
 /**
  * Gets the URL for the full leaderboard, including a token to ensure that it is only viewed by
@@ -31,17 +31,16 @@ export const getLeaderboardUrl = (request: Request, channelId: string): string =
   const hostname = request.headers.host;
 
   const params = { channel: channelId };
-  const protocol = process.env.SCOREBOT_USE_SSL !== '1' ? 'http://' : 'https://';
+  const protocol = useHttps !== '1' ? 'http://' : 'https://';
 
   return `${protocol}${hostname}/leaderboard?${querystring.stringify(params)}`;
 };
 
 const getLeaderboardWeb = (request: Request, channelId: string): string => {
   const params = { channel: channelId };
-  const protocol = process.env.SCOREBOT_USE_SSL !== '1' ? 'http://' : 'https://';
-  const frontendUrl = process.env.SCOREBOT_LEADERBOARD_URL;
+  const protocol = useHttps !== '1' ? 'http://' : 'https://';
 
-  return `${protocol}${frontendUrl}?${querystring.stringify(params)}`;
+  return `${protocol}${leaderboardUrl}?${querystring.stringify(params)}`;
 };
 
 /**
@@ -264,11 +263,11 @@ export const getUserProfile = async (request: Request): Promise<any> => {
       channelProfile: channel,
     } = request.query as Record<string, string>;
     const scores = await retrieveTopScores(channel);
-    const [users, userId] = await Promise.all([rankItems(scores, 'users', 'object'), getUserId(username)]);
+    const users = await rankItems(scores, 'users', 'object');
 
     let userRank = 0;
     for (const el of users) {
-      if (el.item_id === userId) {
+      if (el.item_id === username) {
         userRank = el.rank;
       }
     }

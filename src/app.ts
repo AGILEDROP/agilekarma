@@ -7,11 +7,7 @@ import {
   getKarmaFeed,
   getUserProfile,
 } from './leaderboard.js';
-import knexInstance from './database/knex.js';
-
-const {
-  SLACK_VERIFICATION_TOKEN: verificationToken = '',
-} = process.env;
+import { verificationToken } from '../config.js';
 
 export const logRequest = (request: Request) => {
   console.log(`${request.ip} ${request.method} ${request.path} ${request.headers['user-agent']}`);
@@ -87,7 +83,7 @@ export const handlePost: RequestHandler = (request, response) => {
 
   // Respond to challenge sent by Slack during event subscription set up.
   if (request.body.challenge) {
-    response.send({challenge: request.body.challenge});
+    response.send({ challenge: request.body.challenge });
     console.info('200 Challenge response sent');
     return;
   }

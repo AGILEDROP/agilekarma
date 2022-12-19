@@ -1,0 +1,29 @@
+#!/bin/sh
+
+
+challenge() {
+curl -X POST http://localhost:"$MOCK_SLACK_PORT"/api/control.challenge -w "\n"
+}
+
+message() {
+fromUser=$1
+toUser=$2
+channel=$3
+message=$4
+
+curl -X POST http://localhost:"$MOCK_SLACK_PORT"/api/control.message -w "\n" -H 'Content-Type: application/json' -d "{\"fromUser\": \"$fromUser\", \"toUser\": \"$toUser\", \"channel\": \"$channel\", \"message\": \"$message\"}"
+}
+
+if [ ${#} -eq 1 ] && [ "${1}" = "challenge" ]
+then
+challenge
+
+elif [ ${#} -eq 4 ]
+then
+message "${1}" "${2}" "${3}" "${4}"
+else
+printf "Wrong arguments\n"
+exit 1 # wrong args
+fi
+
+

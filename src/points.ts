@@ -17,12 +17,9 @@ import type {
 } from './types.js';
 import { getChannelName, getUserName } from './slack.js';
 import knexInstance from './database/knex.js';
+import { votingLimit, timeLimit } from '../config.js';
 
 const scoresTableName = 'score';
-const {
-  USER_LIMIT_VOTING_MAX: votingLimit = '300',
-  UNDO_TIME_LIMIT: timeLimit = '300',
-} = process.env;
 
 /**
  * Retrieves all scores for leaderboard.
@@ -30,7 +27,7 @@ const {
 const getAllScores = (channelId: string = '', startDate?: string, endDate?: string): Promise<TopScore[]> => new Promise<TopScore[]>((resolve, reject) => {
   const parseDate = (date: string) => moment.unix(Number(date)).format('YYYY-MM-DD HH:mm:ss');
 
-  const channels = channelId.split(',');
+  const channels = channelId.split(',').filter((str) => str !== '');
 
   knexInstance('score')
     .select('to_user_id as item')
@@ -38,7 +35,6 @@ const getAllScores = (channelId: string = '', startDate?: string, endDate?: stri
     .where((builder) => {
       if (channels.length > 1) channels.forEach((channel) => builder.orWhere('channel_id', '=', channel));
       if (channels.length === 1 && channelId !== 'all') builder.where('channel_id', '=', channelId);
-      // if (channelId === 'all' || channelId === '') return builder;
 
       return builder;
     })
@@ -312,8 +308,7 @@ export const getKarmaFeed = (itemsPerPage: string | number, page: number, search
       builder
         .where('channel.channel_id', '=', channelId)
         .andWhere('score.timestamp', '>', start)
-        .andWhere('score.timestamp', '<', end)
-        .andWhere('uFrom.user_name', 'like', `%${searchString}%`);
+        .andWhere('score.timestamp', '<', end);
     } else if (channelId !== 'all' && searchString && channels.length === 1) {
       builder
         .where('channel.channel_id', '=', channelId)
@@ -358,8 +353,7 @@ export const getKarmaFeed = (itemsPerPage: string | number, page: number, search
     .then((result) => {
       knexInstance('score')
         .select()
-        .count()
-        .as('scores')
+        .count('*', { as: 'scores' })
         .innerJoin('channel', function on() {
           this.on('score.channel_id', '=', 'channel.channel_id');
         })
