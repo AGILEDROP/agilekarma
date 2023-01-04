@@ -40,8 +40,11 @@ const usersList: { voter: string, user: string }[] = [];
  * Handles a plus or minus against a user, and then notifies the channel of the new score.
  * Processes data. Checks if user, channel exist in the database, if not it creates them and
  * returns the random message.
+ *
+ * Due to limitations of mocking esmodules, for this function to be successfully mocked during
+ * testing, it needs to be exported, unfortunately.
  */
-const processUserData = async (item: string, operation: string, channel:string, userVoting: string, description: string): Promise<string> => {
+export const processUserData = async (item: string, operation: string, channel:string, userVoting: string, description: string): Promise<string> => {
   const dbUserTo = await checkUser(item);
   const dbUserFrom = await checkUser(userVoting);
   const checkChannelled = await checkChannel(channel);

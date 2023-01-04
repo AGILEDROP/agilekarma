@@ -1,7 +1,7 @@
 import type { Knex } from 'knex';
 import {
   databaseHost, databasePort, databaseUser, databasePassword, databaseName,
-} from 'config.js';
+} from './config.js';
 
 const config: Knex.Config = {
   client: 'mysql',

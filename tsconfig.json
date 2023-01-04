@@ -13,14 +13,20 @@
     "removeComments": true,
     "preserveConstEnums": true,
     "sourceMap": false,
+    "skipLibCheck": true,
     "paths": {
       "@types": ["src/types.d.ts"]
     },
     "outDir": "./dist"
   },
+  "types": ["vitest/globals"],
   "files": ["index.ts"],
   "include": ["src/**/*.ts", "src/*.ts", "*.ts",
-    "src/mock_slack_api/**/*.ts"
+    "src/mock_slack_api/**/*.ts", "tests/*.ts", "tests/mocks/*.ts"
   ],
   "exclude": ["**/*.spec.ts"]
 }
+/* "skipLibCheck": true needed because https://github.com/vitejs/vite/issues/11552
+  Vite is a dependency of vitest here, this stops the type errors when running the server.
+  Vitest runs normally despite errors.
+*/

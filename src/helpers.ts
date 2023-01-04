@@ -133,6 +133,7 @@ export const maybeLinkItem = (item: string): string => (isUser(item) ? `<@${item
 
 /**
  * Renders HTML for the browser, using Handlebars. Includes a standard header and footer.
+ * TODO: remove this since we are using react?
  */
 export const render = async (templatePath: string, context = {}, request: { query?: { botUser: string } } = {}): Promise<string> => {
   // Retrieve the header and footer HTML, if we don't already have it in memory.
