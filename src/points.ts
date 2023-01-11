@@ -306,22 +306,22 @@ export const getKarmaFeed = (itemsPerPage: string | number, page: number, search
         .andWhere('uFrom.user_name', 'like', `%${searchString}%`);
     } else if (channelId !== 'all' && !searchString && channels.length === 1) {
       builder
-        .where('channel.channel_id', '=', channelId)
+        .where('channel.channel_name', '=', channelId)
         .andWhere('score.timestamp', '>', start)
         .andWhere('score.timestamp', '<', end);
     } else if (channelId !== 'all' && searchString && channels.length === 1) {
       builder
-        .where('channel.channel_id', '=', channelId)
+        .where('channel.channel_name', '=', channelId)
         .andWhere('score.timestamp', '>', start)
         .andWhere('score.timestamp', '<', end)
         .andWhere('uFrom.user_name', 'like', `%${searchString}%`);
     } else if (channelId !== 'all' && !searchString) {
-      channels.forEach((channel) => builder.orWhere('channel_id', '=', channel));
+      channels.forEach((channel) => builder.orWhere('channel.channel_name', '=', channel));
       builder
         .andWhere('score.timestamp', '>', start)
         .andWhere('score.timestamp', '<', end);
     } else if (channelId !== 'all' && searchString) {
-      channels.forEach((channel) => builder.orWhere('channel_id', '=', channel));
+      channels.forEach((channel) => builder.orWhere('channel.channel_name', '=', channel));
       builder
         .andWhere('score.timestamp', '>', start)
         .andWhere('score.timestamp', '<', end)
