@@ -1,0 +1,5 @@
+#!/bin/sh
+
+npm run db-migrate-rollback-all
+npm run db-migrate-latest
+npx ts-node-esm tests/init_integration_test.ts

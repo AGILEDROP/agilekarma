@@ -12,17 +12,15 @@
     "dev": "nodemon",
     "lint": "./node_modules/.bin/eslint . --ext .ts",
     "test": "vitest watch",
+    "integration-tests": "VITEST_RUN_INTEGRATION=true vitest --no-threads run",
+    "e2e-tests": "VITEST_RUN_E2E=true vitest run",
     "test:no-watch": "vitest run",
     "test:coverage": "vitest run --coverage",
     "mock_serve": "ts-node-esm src/mock_slack_api/slack_server.ts",
     "db-migrate-up": "ts-node-esm ./node_modules/.bin/knex migrate:up",
     "db-migrate-down": "ts-node-esm ./node_modules/.bin/knex migrate:down",
     "db-migrate-latest": "ts-node-esm ./node_modules/.bin/knex migrate:latest",
-    "db-migrate-rollback-all": "ts-node-esm ./node_modules/.bin/knex migrate:rollback all",
-    "unit-tests": "SKIP_INTEGRATION_TESTS=true SKIP_E2E_TESTS=true jest --forceExit",
-    "integration-tests": "SKIP_E2E_TESTS=true jest --forceExit integration-tests",
-    "e2e-tests": "SKIP_INTEGRATION_TESTS=true jest --forceExit e2e-tests",
-    "report-coverage": "cat ./coverage/lcov.info | coveralls"
+    "db-migrate-rollback-all": "ts-node-esm ./node_modules/.bin/knex migrate:rollback all"
   },
   "engines": {
     "node": "^16"
