@@ -22,7 +22,7 @@
   "types": ["vitest/globals"],
   "files": ["index.ts"],
   "include": ["src/**/*.ts", "src/*.ts", "*.ts",
-    "src/mock_slack_api/**/*.ts", "tests/*.ts", "tests/mocks/*.ts"
+    "src/mock_slack_api/**/*.ts", "tests/**/*.ts", "tests/mocks/*.ts"
   ],
   "exclude": ["**/*.spec.ts"]
 }
