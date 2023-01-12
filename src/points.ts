@@ -465,24 +465,24 @@ export const getAll = async (username?: string, fromTo?: string, channel?: strin
         if (channel === 'all' || channel === undefined) {
           builder.where('to_user_id', '=', userId);
         } else {
-          builder.where('to_user_id', '=', userId).andWhere('channel.channel_id', '=', channel);
+          builder.where('to_user_id', '=', userId).andWhere('channel.channel_name', '=', channel);
         }
       } else if (fromTo === 'to') {
         if (channel === 'all' || channel === undefined) {
           builder.where('from_user_id', '=', userId);
         } else {
-          builder.where('from_user_id', '=', userId).andWhere('channel.channel_id', '=', channel);
+          builder.where('from_user_id', '=', userId).andWhere('channel.channel_name', '=', channel);
         }
       } else if (fromTo === 'all') {
         if (channel === 'all' || channel === undefined) {
           builder.where('to_user_id', '=', userId).orWhere('from_user_id', '=', userId);
         } else {
-          builder.where('to_user_id', '=', userId).orWhere('from_user_id', '=', userId).andWhere('channel.channel_id', '=', channel);
+          builder.where('to_user_id', '=', userId).orWhere('from_user_id', '=', userId).andWhere('channel.channel_name', '=', channel);
         }
       } else if (channel === 'all' || undefined === channel) {
         builder.where('to_user_id', '=', userId).orWhere('from_user_id', '=', userId);
       } else {
-        builder.where('to_user_id', '=', userId).orWhere('from_user_id', '=', userId).andWhere('channel.channel_id', '=', channel);
+        builder.where('to_user_id', '=', userId).orWhere('from_user_id', '=', userId).andWhere('channel.channel_name', '=', channel);
       }
       return builder;
     };
@@ -511,8 +511,8 @@ export const getAll = async (username?: string, fromTo?: string, channel?: strin
       .then((result) => {
         knexInstance('score')
           .select()
-          .count({ count: '*' })
-          .as('scores')
+          .count({ scores: '*' })
+          .as('score')
           .innerJoin('channel', function on() {
             this.on('score.channel_id', '=', 'channel.channel_id');
           })
