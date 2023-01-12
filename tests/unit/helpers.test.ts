@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   extractCommand, extractPlusMinusEventData, getTimestamp, getTimeBasedToken, isPlural, isTimeBasedTokenStillValid,
   isUser, maybeLinkItem,
-} from '../src/helpers.js';
+} from '../../src/helpers.js';
 
 const MILLISECONDS_TO_SECONDS = 1000;
 

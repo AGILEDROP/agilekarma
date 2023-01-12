@@ -2,7 +2,7 @@ import {
   describe, expect, it, vi, afterAll, beforeAll,
 } from 'vitest';
 import { WebClient } from '@slack/web-api';
-import * as slack from '../src/slack.js';
+import * as slack from '../../src/slack.js';
 
 console.error = vi.fn();
 console.info = vi.fn();

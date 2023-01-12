@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getRandomMessage } from '../src/messages.js';
+import { getRandomMessage } from '../../src/messages.js';
 
 const operations = [
   'plus',

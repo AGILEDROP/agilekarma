@@ -2,23 +2,23 @@ import {
   describe, expect, it, vi, afterAll,
 } from 'vitest';
 // import {handleSelfPlus, handlePlusMinus} from '../src/events.js';
-import * as messages from '../src/messages.js';
-import * as slack from '../src/slack.js';
-import * as points from '../src/points.js';
-import * as events from '../src/events.js';
-import * as helpers from '../src/helpers.js';
-import * as leaderboard from '../src/leaderboard.js';
-import type { Event } from '../src/types.js';
+import * as messages from '../../src/messages.js';
+import * as slack from '../../src/slack.js';
+import * as points from '../../src/points.js';
+import * as events from '../../src/events.js';
+import * as helpers from '../../src/helpers.js';
+import * as leaderboard from '../../src/leaderboard.js';
+import type { Event } from '../../src/types.js';
 
 console.error = vi.fn();
 console.info = vi.fn();
 console.log = vi.fn();
 console.warn = vi.fn();
 
-vi.mock('../src/slack.js');
+vi.mock('../../src/slack.js');
 
-vi.mock('../src/points.js', async () => {
-  const other = await vi.importActual('../src/points.js');
+vi.mock('../../src/points.js', async () => {
+  const other = await vi.importActual('../../src/points.js');
 
   const getDailyUserScore = vi.fn();
   getDailyUserScore.mockResolvedValue({
@@ -41,8 +41,8 @@ vi.mock('../src/points.js', async () => {
   };
 });
 
-vi.mock('../src/events.js', async () => {
-  const other = await vi.importActual('../src/events.js');
+vi.mock('../../src/events.js', async () => {
+  const other = await vi.importActual('../../src/events.js');
 
   const processUserData = vi.fn();
   processUserData.mockResolvedValue('operation successfull');

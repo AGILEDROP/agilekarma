@@ -16,13 +16,13 @@
  * Environment Configuration.
  ****************************************************************/
 
-const app = require( '../src/app' ),
-      points = require( '../src/points' );
+const app = require( '../../src/app.js' ),
+      points = require( '../../src/points.js' );
 
 const pathToListener = '../';
 
 const pg = require( 'pg' ),
-      http = require( 'http' );
+      http = require( 'http.js' );
 
 const config = require( './_config' );
 

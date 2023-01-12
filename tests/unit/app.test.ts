@@ -2,7 +2,7 @@ import {
   describe, expect, it, vi, afterEach,
 } from 'vitest';
 import { getMockReq, getMockRes } from 'vitest-mock-express';
-import * as app from '../src/app.js';
+import * as app from '../../src/app.js';
 
 // Catch all console output during tests.
 console.error = vi.fn();

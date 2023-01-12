@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { operations, getOperationName } from '../src/operations.js';
+import { operations, getOperationName } from '../../src/operations.js';
 
 describe('operations', () => {
   it('exports constants for operations', () => {
