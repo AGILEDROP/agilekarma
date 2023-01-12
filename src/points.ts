@@ -269,7 +269,7 @@ export const getAllScoresFromUser = (startDate: string, endDate: string, channel
     .where('channel_id', '=', channelId)
     .andWhere('timestamp', '>', start)
     .andWhere('timestamp', '<', end)
-    .groupBy('to_user_id')
+    .groupBy('to_user_id', 'from_user_id')
     .orderBy('score', 'desc')
     .then((result) => resolve(result))
     .catch((error) => {
