@@ -69,21 +69,32 @@ const handlePost: RequestHandler = (request, response) => {
   }
 };
 
-server.use((req, res, next) => {
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  next();
-});
+// eslint-disable-next-line import/prefer-default-export
+export const initMockServer = (): boolean => {
+  try {
+    server.use((req, res, next) => {
+      res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+      next();
+    });
 
-server.use(bodyParser.json());
-server.use(bodyParser.urlencoded({ extended: true }));
-server.enable('trust proxy');
-server.get('/', handleGet);
-server.post('/', handlePost);
+    server.use(bodyParser.json());
+    server.use(bodyParser.urlencoded({ extended: true }));
+    server.enable('trust proxy');
+    server.get('/', handleGet);
+    server.post('/', handlePost);
 
-server.get('/api/:group.:method', handleGet);
+    server.get('/api/:group.:method', handleGet);
 
-server.post('/api/:group.:method', handlePost);
+    server.post('/api/:group.:method', handlePost);
 
-server.listen(Number.parseInt(port, 10), () => {
-  console.log(`Mock slack server listening on http://localhost:${port}`);
-});
+    server.listen(Number.parseInt(port, 10), () => {
+      console.log(`Mock slack server listening on http://localhost:${port}`);
+    });
+    return true;
+  } catch (e) {
+    console.log(e);
+    return false;
+  }
+};
+
+initMockServer();
