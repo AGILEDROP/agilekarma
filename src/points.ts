@@ -76,7 +76,7 @@ const insertScore = (toUserId: string, fromUserId: string, channelId: string, de
 /**
  * Selects score for item.
  */
-const getUserScore = (item: string, channelId: string): Promise<{ score: number }[]> => new Promise((resolve, reject) => {
+export const getUserScore = (item: string, channelId: string): Promise<{ score: number }[]> => new Promise((resolve, reject) => {
   knexInstance(scoresTableName).select()
     .count<{ score: number }[]>('score_id as score')
     .where('to_user_id', '=', item)
@@ -90,12 +90,8 @@ const getUserScore = (item: string, channelId: string): Promise<{ score: number 
 /**
  * Updates the score of an item in the database. If the item doesn't yet exist, it will be inserted
  * into the database with an assumed initial score of 0.
- *
- * This function also sets up the database if it is not already ready, including creating the
- * scores table and activating the Postgres case-insensitive extension.
  */
 export const updateScore = async (toUserId: string, fromUserId: string, channelId: string, description: string): Promise<number> => {
-  // Connect to the DB, and create a table if it's not yet there.
   await insertScore(toUserId, fromUserId, channelId, description);
   const results = await getUserScore(toUserId, channelId);
   const result = results[0].score;
@@ -107,7 +103,7 @@ export const updateScore = async (toUserId: string, fromUserId: string, channelI
 /**
  * Gets the last score record for user per channel.
  */
-const getLast = (fromUserId: string, channelId: string): Promise<GetLastScore[]> => new Promise((resolve, reject) => {
+export const getLast = (fromUserId: string, channelId: string): Promise<GetLastScore[]> => new Promise((resolve, reject) => {
   const timestamp = moment(Date.now()).subtract(timeLimit, 'seconds').format('YYYY-MM-DD HH:mm:ss');
 
   knexInstance(scoresTableName)
@@ -167,7 +163,7 @@ export const undoScore = async (fromUserId: string, toUserId: string, channelId:
 /**
  *  Gets the user from the db.
  */
-const getUser = (userId: string): Promise<{ user_id: string }[]> => new Promise((resolve, reject) => {
+export const getUser = (userId: string): Promise<{ user_id: string }[]> => new Promise((resolve, reject) => {
   knexInstance('user')
     .select('user_id')
     .where('user_id', '=', userId)
@@ -181,7 +177,7 @@ const getUser = (userId: string): Promise<{ user_id: string }[]> => new Promise(
 /**
  * Inserts user into db.
  */
-const insertUser = (userId: string, userName: string): Promise<any> => new Promise((resolve, reject) => {
+export const insertUser = (userId: string, userName: string): Promise<any> => new Promise((resolve, reject) => {
   const lowercaseUserName = userName.split(' ').join('').toLocaleLowerCase();
   knexInstance('user')
     .insert({
@@ -209,7 +205,7 @@ export const checkUser = async (userId: string): Promise<string> => {
 /**
  * Gets the channel from db.
  */
-const getChannel = (channelId: string): Promise<{ channel_id: string }[]> => new Promise((resolve, reject) => {
+export const getChannel = (channelId: string): Promise<{ channel_id: string }[]> => new Promise((resolve, reject) => {
   knexInstance('channel')
     .select('channel_id')
     .where('channel_id', '=', channelId)
@@ -221,9 +217,23 @@ const getChannel = (channelId: string): Promise<{ channel_id: string }[]> => new
 });
 
 /**
+ * Gets the channel id from name from the db.
+ */
+export const getChannelId = (channelName: string): Promise<string> => new Promise((resolve, reject) => {
+  knexInstance('channel')
+    .select('channel_id')
+    .where('channel_name', '=', channelName)
+    .then((result) => resolve(result[0].channel_id))
+    .catch((error) => {
+      console.error(error);
+      reject(error);
+    });
+});
+
+/**
  * Inserts channel into db.
  */
-const insertChannel = (channelId: string, channelName: string): Promise<any> => new Promise((resolve, reject) => {
+export const insertChannel = (channelId: string, channelName: string): Promise<any> => new Promise((resolve, reject) => {
   knexInstance('channel')
     .insert({ channel_id: channelId, channel_name: channelName })
     .then((result) => resolve(result))
@@ -381,7 +391,7 @@ export const getKarmaFeed = (itemsPerPage: string | number, page: number, search
 /**
  * Gets the count of daily scores by user.
  */
-const getDailyVotesByUser = (fromUserId: string): Promise<{ daily_votes: number }[]> => new Promise((resolve, reject) => {
+export const getDailyVotesByUser = (fromUserId: string): Promise<{ daily_votes: number }[]> => new Promise((resolve, reject) => {
   knexInstance('score')
     .select()
     .count<{ daily_votes: number }[]>('score_id')

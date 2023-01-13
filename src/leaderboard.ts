@@ -36,7 +36,7 @@ export const getLeaderboardUrl = (request: Request, channelId: string): string =
   return `${protocol}${hostname}/leaderboard?${querystring.stringify(params)}`;
 };
 
-const getLeaderboardWeb = (request: Request, channelId: string): string => {
+export const getLeaderboardWeb = (request: Request, channelId: string): string => {
   const params = { channel: channelId };
   const protocol = useHttps !== '1' ? 'http://' : 'https://';
 

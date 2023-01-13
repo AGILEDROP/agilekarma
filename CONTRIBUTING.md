@@ -44,14 +44,16 @@ Other than the modifications to steps 5 and 6, make sure you've followed all the
 
 This app has an extensive test suite, just because. Before submitting pull requests, please check that your changes pass linting and tests by running `yarn lint` and `yarn test`. These will also be run for you by Travis CI, but it's often quicker to debug and resolve the issues locally.
 
-⚠️ _You will need access to a PostgreSQL server to run the integration and end-to-end tests. If you don't, just run the unit tests (see below) and let Travis CI run the full test suite for you._
-
-ℹ️ _If you don't have Yarn, you can replace any mention of `yarn` in this section with `npm run`._
-
 You can run just a subset of tests:
-- Unit tests with `yarn unit-tests`
-- Integration tests with `yarn integration-tests`
-- End-to-end tests with `yarn e2e-tests`
+- Unit tests with `yarn test`
+- Integration tests with `./prep_for_integration_tests` and `yarn integration-tests`
+
+**Important:**
+
+Integration tests must be run from the docker container and the db must be prepped. This is done with the `./prep_for_integration_tests` script. The script
+will _ERASE_ the db and put a few sample scores in to test against.
+**The prep script must be run before every integration test run!**
+Unit tests do not affect the db.
 
 You can modify the default testing behaviour by adjusting the relevant `scripts` in [`package.json`](package.json) or in some cases by passing additional [Jest configuration parameters](https://jestjs.io/docs/en/configuration.html) at the end of the test commands above.
 
