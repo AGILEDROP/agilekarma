@@ -16,8 +16,6 @@ import {
   addMonths,
   startOfWeek,
   endOfWeek,
-  // isSameDay,
-  // differenceInCalendarDays,
 } from "date-fns";
 import { enGB } from "date-fns/locale";
 import "react-date-range/dist/styles.css"; // main style file

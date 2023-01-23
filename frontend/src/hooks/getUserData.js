@@ -10,7 +10,9 @@ export const getUserData = async (token) => {
 
       return data;
     } catch (error) {
-      console.log(error);
+      if (error.response.status == 401) {
+        throw new Error(error);
+      }
     }
   }
 };

@@ -2,16 +2,16 @@ import { useState, useEffect } from "react";
 import { useAuthContext } from "./useAuthContext";
 
 export const useSetLogin = () => {
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { accessToken } = useAuthContext();
 
   useEffect(() => {
     if (accessToken != null) {
-      setIsLogin(true);
+      setIsLoggedIn(true);
     } else {
-      setIsLogin(false);
+      setIsLoggedIn(false);
     }
   }, [accessToken]);
 
-  return isLogin;
+  return isLoggedIn;
 };

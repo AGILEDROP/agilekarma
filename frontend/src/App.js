@@ -14,12 +14,12 @@ import { useSetLogin } from "./hooks/useSetLogin";
 
 const App = (props) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const isLogin = useSetLogin();
+  const isLoggedIn = useSetLogin();
 
   return (
     <GoogleOAuthProvider clientId={`${process.env.REACT_APP_GOOGLE_CLIENT_ID}`}>
       <Router>
-        {isLogin && (
+        {isLoggedIn && (
           <PrivateRoute
             path="/"
             component={NavBar}

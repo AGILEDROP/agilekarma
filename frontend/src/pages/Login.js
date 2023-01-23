@@ -9,7 +9,7 @@ import { useSetLogin } from "../hooks/useSetLogin";
 const Login = (props) => {
   const { dispatch } = useAuthContext();
 
-  const isLogin = useSetLogin();
+  const isLoggedIn = useSetLogin();
 
   const googleLogin = useGoogleLogin({
     flow: "auth-code",
@@ -37,7 +37,7 @@ const Login = (props) => {
     onError: (error) => console.log(error),
   });
 
-  if (isLogin) {
+  if (isLoggedIn) {
     return <Redirect to="/" />;
   }
   return (
